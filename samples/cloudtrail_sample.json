@@ -1,0 +1,150 @@
+{
+  "Records": [
+    {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEDEVUSER01",
+        "arn": "arn:aws:iam::123456789012:user/dev-tamer",
+        "accountId": "123456789012",
+        "userName": "dev-tamer"
+      },
+      "eventTime": "2026-09-20T14:02:11Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "ListBuckets",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.23",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Darwin/23.5.0",
+      "requestParameters": { "Host": "s3.amazonaws.com" },
+      "responseElements": null,
+      "eventID": "a1f3c2d4-1111-4a2b-9c3d-000000000001",
+      "readOnly": true,
+      "eventType": "AwsApiCall",
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEDEVUSER01",
+        "arn": "arn:aws:iam::123456789012:user/dev-tamer",
+        "accountId": "123456789012",
+        "userName": "dev-tamer"
+      },
+      "eventTime": "2026-09-20T14:05:47Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "RunInstances",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.23",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Darwin/23.5.0",
+      "requestParameters": {
+        "instanceType": "t3.micro",
+        "minCount": 1,
+        "maxCount": 1
+      },
+      "responseElements": {
+        "instancesSet": {
+          "items": [{ "instanceId": "i-0abc123def4567890" }]
+        }
+      },
+      "eventID": "a1f3c2d4-2222-4a2b-9c3d-000000000002",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "AROAEXAMPLEREPORTS01:reports-job",
+        "arn": "arn:aws:sts::123456789012:assumed-role/reports-role/reports-job",
+        "accountId": "123456789012"
+      },
+      "eventTime": "2026-09-20T15:30:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "DescribeInstances",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.40",
+      "userAgent": "Boto3/1.35.0 Python/3.12.4",
+      "requestParameters": {
+        "instancesSet": {},
+        "filterSet": {}
+      },
+      "responseElements": null,
+      "eventID": "a1f3c2d4-3333-4a2b-9c3d-000000000003",
+      "readOnly": true,
+      "eventType": "AwsApiCall",
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEADMIN0001",
+        "accountId": "123456789012",
+        "userName": "admin"
+      },
+      "eventTime": "2026-09-21T03:14:07Z",
+      "eventSource": "signin.amazonaws.com",
+      "eventName": "ConsoleLogin",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.45",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "requestParameters": null,
+      "responseElements": { "ConsoleLogin": "Failure" },
+      "additionalEventData": {
+        "MFAUsed": "No",
+        "LoginTo": "https://console.aws.amazon.com/console/home"
+      },
+      "errorMessage": "Failed authentication",
+      "eventID": "a1f3c2d4-4444-4a2b-9c3d-000000000004",
+      "readOnly": false,
+      "eventType": "AwsConsoleSignIn",
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEBACKUP001",
+        "arn": "arn:aws:iam::123456789012:user/backup-svc",
+        "accountId": "123456789012",
+        "userName": "backup-svc"
+      },
+      "eventTime": "2026-09-21T03:22:51Z",
+      "eventSource": "cloudtrail.amazonaws.com",
+      "eventName": "DeleteTrail",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.45",
+      "userAgent": "aws-cli/2.15.0 Python/3.11.6 Linux/5.15.0",
+      "requestParameters": { "name": "management-events" },
+      "responseElements": null,
+      "eventID": "a1f3c2d4-5555-4a2b-9c3d-000000000005",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEDEVUSER01",
+        "arn": "arn:aws:iam::123456789012:user/dev-tamer",
+        "accountId": "123456789012",
+        "userName": "dev-tamer"
+      },
+      "eventTime": "2026-09-20T14:02:11Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "ListBuckets",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.23",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Darwin/23.5.0",
+      "requestParameters": { "Host": "s3.amazonaws.com" },
+      "responseElements": null,
+      "eventID": "a1f3c2d4-1111-4a2b-9c3d-000000000001",
+      "readOnly": true,
+      "eventType": "AwsApiCall",
+      "recipientAccountId": "123456789012"
+    }
+  ]
+}
