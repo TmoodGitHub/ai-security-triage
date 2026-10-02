@@ -40,5 +40,5 @@ export interface NormalizedEvent {
   success: boolean;
   errorCode: string | null;
   errorMessage: string | null;
-  raw: object;
+  raw: CloudTrailEvent;
 }
