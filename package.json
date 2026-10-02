@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "test": "vitest run",
-    "build": "tsc"
+    "build": "tsc",
+    "ingest": "tsc && node dist/ingest/run.js"
   },
   "repository": {
     "type": "git",
