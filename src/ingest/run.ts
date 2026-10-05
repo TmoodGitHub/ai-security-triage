@@ -2,6 +2,8 @@ import {
   readCloudTrailFile,
   ingestCloudTrail,
 } from './ingest.js';
+import { saveEvents } from '../db/events.js';
+import { pool } from '../db/client.js';
 
 const path = process.argv[2];
 
@@ -14,15 +16,23 @@ if (path === undefined) {
 
 const contents = await readCloudTrailFile(path);
 const events = ingestCloudTrail(contents);
+const inserted = await saveEvents(events);
 
 console.log(
-  `Ingested ${events.length} unique events from ${path}\n`,
+  `Read ${events.length} unique events from ${path}`,
 );
-for (const event of events) {
-  const status = event.success ? 'ok    ' : 'FAILED';
-  const who =
-    event.userName ?? event.userArn ?? event.userType;
-  console.log(
-    `${event.eventTime} ${status} ${event.eventName.padEnd(18)} ${who} from ${event.sourceIPAddress}`,
-  );
-}
+console.log(
+  `Saved ${inserted} new events (${events.length - inserted} were already in the database)`,
+);
+
+await pool.end();
+
+// To print events, uncomment below:
+// for (const event of events) {
+//   const status = event.success ? 'ok    ' : 'FAILED';
+//   const who =
+//     event.userName ?? event.userArn ?? event.userType;
+//   console.log(
+//     `${event.eventTime} ${status} ${event.eventName.padEnd(18)} ${who} from ${event.sourceIPAddress}`,
+//   );
+// }

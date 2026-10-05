@@ -7,7 +7,7 @@
   "scripts": {
     "test": "vitest run",
     "build": "tsc",
-    "ingest": "tsc && node dist/ingest/run.js",
+    "ingest": "tsc && node --env-file=.env dist/ingest/run.js",
     "db:check": "tsc && node --env-file=.env dist/db/check.js"
   },
   "repository": {
