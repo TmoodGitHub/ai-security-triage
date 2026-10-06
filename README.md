@@ -1,5 +1,7 @@
 # ai-security-triage
 
+![CI](https://github.com/TmoodGitHub/ai-security-triage/actions/workflows/ci.yml/badge.svg)
+
 AI-assisted triage of AWS security logs. The service takes in CloudTrail events, cleans them into one standard format, and uses a large language model (LLM) to suggest how serious each finding is and why. A person reviews every suggestion before anything is acted on.
 
 ## Status
@@ -10,7 +12,7 @@ AI-assisted triage of AWS security logs. The service takes in CloudTrail events,
 - [x] TypeScript project setup
 - [x] Log intake and cleanup
 - [x] Storage in Postgres
-- [ ] Findings API
+- [x] Findings API
 - [ ] AI triage step, with accuracy tests
 - [ ] Analyst screen
 - [ ] Infrastructure in Terraform, tests on every push
