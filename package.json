@@ -5,7 +5,8 @@
   "description": "AI-assisted triage of AWS security logs, built with TypeScript, Python, Terraform, and AWS.",
   "main": "index.js",
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run --exclude \"tests/integration/**\"",
+    "test:db": "vitest run tests/integration",
     "build": "tsc",
     "ingest": "tsc && node --env-file=.env dist/ingest/run.js",
     "db:check": "tsc && node --env-file=.env dist/db/check.js"

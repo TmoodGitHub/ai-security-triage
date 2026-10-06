@@ -1,0 +1,11 @@
+import { defineConfig } from 'vitest/config';
+import { loadEnv } from 'vite';
+
+export default defineConfig(({ mode }) => ({
+  test: {
+    env: {
+      ...loadEnv(mode, process.cwd(), ''),
+      POSTGRES_DB: 'triage_test',
+    },
+  },
+}));
