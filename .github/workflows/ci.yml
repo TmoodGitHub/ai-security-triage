@@ -17,4 +17,36 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm test
+
+  test-db:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: triage
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: triage_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U triage"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      POSTGRES_USER: triage
+      POSTGRES_PASSWORD: ci-only-password
+      DB_HOST: localhost
+      DB_PORT: 5432
+      PGPASSWORD: ci-only-password
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Create tables
+        run: psql -h localhost -U triage -d triage_test -v ON_ERROR_STOP=1 -f db/migrations/001_create_events.sql
       - run: npm run test:db
