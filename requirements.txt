@@ -1,3 +1,4 @@
 anthropic
 psycopg[binary]
 pytest
+python-dotenv
