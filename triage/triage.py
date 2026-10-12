@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
 
@@ -25,6 +26,13 @@ Failed and denied actions:
 - Do not rate an event low just because it failed or was denied. A denied attempt shows what the caller was trying to do.
 - A denied attempt at a sensitive action (creating users or access keys, changing permissions, or disabling logging or monitoring) by an identity with no plausible reason to perform it is at least high.
 
+Related events:
+- You may be given related events: other events from the same identity or the same IP address within 24 hours.
+- Rate only the event being triaged. Use related events as context for it, not as findings of their own.
+- Raise severit when related events show a pattern, for example several identities acting from one IP address, or failed sign-ins followed by sensitive changes.
+- Lower severity when related events show the same routine activity repeating.
+- If no related events are listed, judge the event on its own.
+
 Routine read-only activity by a known user is usually low.
 A human analyst will review your assessment before anyone acts on it."""
 
@@ -35,18 +43,31 @@ class TriageResult(BaseModel):
     evidence: list[str] = Field(description="The specific fields and values from the event that support your assessment.")
     unknowns: list[str] = Field(description="Relevant things the event cannot tell you.")
 
+def format_related(related: list[dict]) -> str:
+    if not related:
+        return "Related events: none found."
 
-def triage_event(client: anthropic.Anthropic, event: dict) -> TriageResult:
+    lines = ["Related events (same identity or IP, within 24 hours):"]
+    for r in related:
+        time = r["event_time"]
+        if isinstance(time, datetime):
+            time = time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        outcome = "succeeded" if r["success"] else f"failed ({r['error_code'] or 'no error code'})"
+        lines.append(
+            f"- {time}  {r['event_name']} by {r['who']} from {r['source_ip_address']}, {outcome} [{r['link']}]"
+        )
+    return "\n".join(lines)
+
+def triage_event(client: anthropic.Anthropic, event: dict, related: list[dict] | None = None) -> TriageResult:
+    content = "Triage this CloudTrail event:\n\n" + json.dumps(event, indent=2)
+    if related is not None:
+        content += "\n\n" + format_related(related)
+
     response = client.messages.parse(
         model=MODEL,
         max_tokens=1024,
         system=SYSTEM_PROMPT,
-        messages=[
-            {
-                "role": "user",
-                "content": "Triage this CloudTrail event:\n\n" + json.dumps(event, indent=2),
-            }
-        ],
+        messages=[{"role": "user", "content": content}],
         output_format=TriageResult,
     )
     return response.parsed_output
