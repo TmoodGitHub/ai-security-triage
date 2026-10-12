@@ -1,0 +1,543 @@
+[
+  {
+    "id": 1,
+    "expected": "low",
+    "note": "Routine automated read of a report file.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "AROAEXAMPLEREPORTS01:reports-job",
+        "arn": "arn:aws:sts::123456789012:assumed-role/reports-role/reports-job",
+        "accountId": "123456789012"
+      },
+      "eventTime": "2026-09-22T06:00:15Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "GetObject",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "AWS Internal",
+      "userAgent": "AWS Internal",
+      "requestParameters": {
+        "bucketName": "reports-data",
+        "key": "daily/2026-09-21.csv"
+      },
+      "responseElements": null,
+      "eventID": "eval-01-0000-4000-8000-000000000001",
+      "readOnly": true,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Data",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 2,
+    "expected": "low",
+    "note": "Developer console login from usual IP with MFA.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEDEVUSER01",
+        "arn": "arn:aws:iam::123456789012:user/dev-tamer",
+        "accountId": "123456789012",
+        "userName": "dev-tamer"
+      },
+      "eventTime": "2026-09-22T13:05:02Z",
+      "eventSource": "signin.amazonaws.com",
+      "eventName": "ConsoleLogin",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.23",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "requestParameters": null,
+      "responseElements": {
+        "ConsoleLogin": "Success"
+      },
+      "eventID": "eval-02-0000-4000-8000-000000000002",
+      "readOnly": false,
+      "eventType": "AwsConsoleSignIn",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012",
+      "additionalEventData": {
+        "MFAUsed": "Yes",
+        "LoginTo": "https://console.aws.amazon.com/console/home"
+      }
+    }
+  },
+  {
+    "id": 3,
+    "expected": "high",
+    "note": "Root login without MFA at night from an unfamiliar IP.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "Root",
+        "principalId": "123456789012",
+        "arn": "arn:aws:iam::123456789012:root",
+        "accountId": "123456789012"
+      },
+      "eventTime": "2026-09-22T02:41:33Z",
+      "eventSource": "signin.amazonaws.com",
+      "eventName": "ConsoleLogin",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.77",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "requestParameters": null,
+      "responseElements": {
+        "ConsoleLogin": "Success"
+      },
+      "eventID": "eval-03-0000-4000-8000-000000000003",
+      "readOnly": false,
+      "eventType": "AwsConsoleSignIn",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012",
+      "additionalEventData": {
+        "MFAUsed": "No",
+        "LoginTo": "https://console.aws.amazon.com/console/home"
+      }
+    }
+  },
+  {
+    "id": 4,
+    "expected": "high",
+    "note": "Service account issued a new access key for the admin user.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEBACKUP001",
+        "arn": "arn:aws:iam::123456789012:user/backup-svc",
+        "accountId": "123456789012",
+        "userName": "backup-svc"
+      },
+      "eventTime": "2026-09-22T03:16:10Z",
+      "eventSource": "iam.amazonaws.com",
+      "eventName": "CreateAccessKey",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.45",
+      "userAgent": "aws-cli/2.15.0 Python/3.11.6 Linux/5.15.0",
+      "requestParameters": {
+        "userName": "admin"
+      },
+      "responseElements": {
+        "accessKey": {
+          "userName": "admin",
+          "accessKeyId": "AKIAEXAMPLENEWKEY001",
+          "status": "Active",
+          "createDate": "Sep 22, 2026, 3:16:10 AM"
+        }
+      },
+      "eventID": "eval-04-0000-4000-8000-000000000004",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 5,
+    "expected": "high",
+    "note": "Full administrator rights granted to a contractor account.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEDEVUSER01",
+        "arn": "arn:aws:iam::123456789012:user/dev-tamer",
+        "accountId": "123456789012",
+        "userName": "dev-tamer"
+      },
+      "eventTime": "2026-09-22T15:20:44Z",
+      "eventSource": "iam.amazonaws.com",
+      "eventName": "AttachUserPolicy",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.23",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Darwin/23.5.0",
+      "requestParameters": {
+        "userName": "temp-contractor",
+        "policyArn": "arn:aws:iam::aws:policy/AdministratorAccess"
+      },
+      "responseElements": null,
+      "eventID": "eval-05-0000-4000-8000-000000000005",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 6,
+    "expected": "critical",
+    "note": "Audit logging stopped; same effect as deleting the trail.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEADMIN0001",
+        "arn": "arn:aws:iam::123456789012:user/admin",
+        "accountId": "123456789012",
+        "userName": "admin"
+      },
+      "eventTime": "2026-09-22T03:21:02Z",
+      "eventSource": "cloudtrail.amazonaws.com",
+      "eventName": "StopLogging",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.45",
+      "userAgent": "aws-cli/2.15.0 Python/3.11.6 Linux/5.15.0",
+      "requestParameters": {
+        "name": "arn:aws:cloudtrail:us-east-1:123456789012:trail/management-events"
+      },
+      "responseElements": null,
+      "eventID": "eval-06-0000-4000-8000-000000000006",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 7,
+    "expected": "critical",
+    "note": "GuardDuty threat detection removed.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "AROAEXAMPLEOPSROLE01:ops-session",
+        "arn": "arn:aws:sts::123456789012:assumed-role/ops-role/ops-session",
+        "accountId": "123456789012"
+      },
+      "eventTime": "2026-09-22T16:02:19Z",
+      "eventSource": "guardduty.amazonaws.com",
+      "eventName": "DeleteDetector",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.40",
+      "userAgent": "Boto3/1.35.0 Python/3.12.4",
+      "requestParameters": {
+        "detectorId": "12abc34d567e8fa901bc2d34e56789f0"
+      },
+      "responseElements": null,
+      "eventID": "eval-07-0000-4000-8000-000000000007",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 8,
+    "expected": "high",
+    "note": "Customer data bucket made publicly readable.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEDEVUSER01",
+        "arn": "arn:aws:iam::123456789012:user/dev-tamer",
+        "accountId": "123456789012",
+        "userName": "dev-tamer"
+      },
+      "eventTime": "2026-09-22T17:45:51Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutBucketPolicy",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.23",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Darwin/23.5.0",
+      "requestParameters": {
+        "bucketName": "customer-exports",
+        "bucketPolicy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::customer-exports/*"
+            }
+          ]
+        }
+      },
+      "responseElements": null,
+      "eventID": "eval-08-0000-4000-8000-000000000008",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 9,
+    "expected": "high",
+    "note": "SSH opened to the entire internet.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEDEVUSER01",
+        "arn": "arn:aws:iam::123456789012:user/dev-tamer",
+        "accountId": "123456789012",
+        "userName": "dev-tamer"
+      },
+      "eventTime": "2026-09-22T18:10:07Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "AuthorizeSecurityGroupIngress",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.23",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Darwin/23.5.0",
+      "requestParameters": {
+        "groupId": "sg-0abc1234def567890",
+        "ipPermissions": {
+          "items": [
+            {
+              "ipProtocol": "tcp",
+              "fromPort": 22,
+              "toPort": 22,
+              "ipRanges": {
+                "items": [
+                  {
+                    "cidrIp": "0.0.0.0/0"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "responseElements": {
+        "_return": true
+      },
+      "eventID": "eval-09-0000-4000-8000-000000000009",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 10,
+    "expected": "medium",
+    "note": "Read-only request refused for a known developer.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEDEVUSER01",
+        "arn": "arn:aws:iam::123456789012:user/dev-tamer",
+        "accountId": "123456789012",
+        "userName": "dev-tamer"
+      },
+      "eventTime": "2026-09-22T14:30:12Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "DescribeInstances",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.23",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Darwin/23.5.0",
+      "requestParameters": {
+        "instancesSet": {},
+        "filterSet": {}
+      },
+      "responseElements": null,
+      "eventID": "eval-10-0000-4000-8000-000000000010",
+      "readOnly": true,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012",
+      "errorCode": "Client.UnauthorizedOperation",
+      "errorMessage": "You are not authorized to perform this operation."
+    }
+  },
+  {
+    "id": 11,
+    "expected": "high",
+    "note": "Identity check from a new IP with a scripting user agent; common first step after key theft.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEBACKUP001",
+        "arn": "arn:aws:iam::123456789012:user/backup-svc",
+        "accountId": "123456789012",
+        "userName": "backup-svc"
+      },
+      "eventTime": "2026-09-22T03:05:48Z",
+      "eventSource": "sts.amazonaws.com",
+      "eventName": "GetCallerIdentity",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.200",
+      "userAgent": "python-requests/2.31.0",
+      "requestParameters": null,
+      "responseElements": null,
+      "eventID": "eval-11-0000-4000-8000-000000000011",
+      "readOnly": true,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 12,
+    "expected": "high",
+    "note": "Twenty expensive GPU servers launched in an unused region; likely cryptomining.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEBACKUP001",
+        "arn": "arn:aws:iam::123456789012:user/backup-svc",
+        "accountId": "123456789012",
+        "userName": "backup-svc"
+      },
+      "eventTime": "2026-09-22T03:30:55Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "RunInstances",
+      "awsRegion": "ap-southeast-1",
+      "sourceIPAddress": "203.0.113.45",
+      "userAgent": "aws-cli/2.15.0 Python/3.11.6 Linux/5.15.0",
+      "requestParameters": {
+        "instanceType": "p4d.24xlarge",
+        "minCount": 20,
+        "maxCount": 20,
+        "imageId": "ami-0abcdef1234567890"
+      },
+      "responseElements": {
+        "instancesSet": {
+          "items": [
+            {
+              "instanceId": "i-0aaaaaaaaaaaaaa01"
+            }
+          ]
+        }
+      },
+      "eventID": "eval-12-0000-4000-8000-000000000012",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 13,
+    "expected": "low",
+    "note": "Developer deleted an empty test bucket.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEDEVUSER01",
+        "arn": "arn:aws:iam::123456789012:user/dev-tamer",
+        "accountId": "123456789012",
+        "userName": "dev-tamer"
+      },
+      "eventTime": "2026-09-22T19:02:40Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteBucket",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.23",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Darwin/23.5.0",
+      "requestParameters": {
+        "bucketName": "old-test-bucket"
+      },
+      "responseElements": null,
+      "eventID": "eval-13-0000-4000-8000-000000000013",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 14,
+    "expected": "low",
+    "note": "Admin changed own password in the console with MFA.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEADMIN0001",
+        "arn": "arn:aws:iam::123456789012:user/admin",
+        "accountId": "123456789012",
+        "userName": "admin"
+      },
+      "eventTime": "2026-09-22T13:40:21Z",
+      "eventSource": "iam.amazonaws.com",
+      "eventName": "ChangePassword",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.23",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "requestParameters": null,
+      "responseElements": null,
+      "eventID": "eval-14-0000-4000-8000-000000000014",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012",
+      "additionalEventData": {
+        "MFAUsed": "Yes"
+      }
+    }
+  },
+  {
+    "id": 15,
+    "expected": "low",
+    "note": "AWS Lambda assuming the reports role for a scheduled job.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "AWSService",
+        "invokedBy": "lambda.amazonaws.com"
+      },
+      "eventTime": "2026-09-22T06:00:02Z",
+      "eventSource": "sts.amazonaws.com",
+      "eventName": "AssumeRole",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "lambda.amazonaws.com",
+      "userAgent": "lambda.amazonaws.com",
+      "requestParameters": {
+        "roleArn": "arn:aws:iam::123456789012:role/reports-role",
+        "roleSessionName": "reports-job"
+      },
+      "responseElements": {
+        "credentials": {
+          "accessKeyId": "ASIAEXAMPLEREPORTS01",
+          "expiration": "Sep 22, 2026, 7:00:02 AM"
+        }
+      },
+      "eventID": "eval-15-0000-4000-8000-000000000015",
+      "readOnly": true,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 16,
+    "expected": "high",
+    "note": "A service account trying to create a user needs attention now, even though it was refused (labeler's judgment).",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEBACKUP001",
+        "arn": "arn:aws:iam::123456789012:user/backup-svc",
+        "accountId": "123456789012",
+        "userName": "backup-svc"
+      },
+      "eventTime": "2026-09-22T03:18:40Z",
+      "eventSource": "iam.amazonaws.com",
+      "eventName": "CreateUser",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.45",
+      "userAgent": "aws-cli/2.15.0 Python/3.11.6 Linux/5.15.0",
+      "requestParameters": {
+        "userName": "support-admin"
+      },
+      "responseElements": null,
+      "eventID": "eval-16-0000-4000-8000-000000000016",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012",
+      "errorCode": "AccessDenied",
+      "errorMessage": "User: arn:aws:iam::123456789012:user/backup-svc is not authorized to perform: iam:CreateUser on resource: arn:aws:iam::123456789012:user/support-admin because no identity-based policy allows the iam:CreateUser action"
+    }
+  }
+]
