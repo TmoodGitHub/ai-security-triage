@@ -1,5 +1,6 @@
 import os
 import psycopg
+from psycopg.rows import dict_row
 from triage.triage import TriageResult
 
 def connect() -> psycopg.Connection:
@@ -40,3 +41,34 @@ def save_finding(conn: psycopg.Connection, event_id: str, result: TriageResult, 
             model
         )
     )
+
+def fetch_related_events(conn: psycopg.Connection, event_id: str, limit: int = 20) -> list[dict]:
+    cursor = conn.cursor(row_factory=dict_row)
+    return cursor.execute(
+        """
+        WITH target AS (
+            SELECT event_id, principal_id, source_ip_address, event_time
+            FROM events
+            WHERE event_id = %(event_id)s
+        )
+        SELECT
+            e.event_time,
+            e.event_name,
+            COALESCE(e.user_name, e.user_arn, e.user_type) AS who,
+            e.source_ip_address,
+            e.success,
+            e.error_code,
+            CASE
+                WHEN e.principal_id = t.principal_id AND e.source_ip_address = t.source_ip_address THEN 'same identity and IP'
+                WHEN e.principal_id = t.principal_id THEN 'same identity'
+                ELSE 'same IP'
+            END AS link
+        FROM events e
+        JOIN target t ON e.event_id <> t.event_id
+        WHERE (e.principal_id = t.principal_id OR e.source_ip_address = t.source_ip_address)
+            AND e.event_time BETWEEN t.event_time - INTERVAL '24 hours' AND t.event_time + INTERVAL '24 hours'
+        ORDER BY e.event_time
+        LIMIT %(limit)s
+        """,
+        {"event_id": event_id, "limit": limit},
+    ).fetchall()
