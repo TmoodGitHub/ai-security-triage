@@ -36,7 +36,7 @@ describe('saveEvents (needs the database running)', () => {
   });
 
   beforeEach(async () => {
-    await pool.query('TRUNCATE events');
+    await pool.query('TRUNCATE events, findings');
   });
 
   afterAll(async () => {

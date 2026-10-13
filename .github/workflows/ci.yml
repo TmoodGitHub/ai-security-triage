@@ -48,5 +48,5 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Create tables
-        run: psql -h localhost -U triage -d triage_test -v ON_ERROR_STOP=1 -f db/migrations/001_create_events.sql
+        run: for f in db/migrations/*.sql; do psql -h localhost -U triage -d triage_test -v ON_ERROR_STOP=1 -f "$f"; done
       - run: npm run test:db
