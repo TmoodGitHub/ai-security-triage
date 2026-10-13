@@ -25,38 +25,43 @@ async function addFinding(
   eventName: string,
   severity: string,
   reviewStatus = 'pending',
-) {
-  await pool.query(
-    `
-            INSERT INTO findings
-                (event_id, severity, summary, reasoning, evidence, unknowns, model, review_status)
-            SELECT event_id, $2, 'summary', 'reasoning', '{}', '{}', 'test-model', $3
-            FROM events WHERE event_name = $1
-        `,
+): Promise<string> {
+  const result = await pool.query<{ id: string }>(
+    `INSERT INTO findings 
+        (event_id, severity, summary, reasoning, evidence, unknowns, model, review_status)
+      SELECT event_id, $2, 'summary', 'reasoning', ARRAY['evidence one'], ARRAY['unknown one'], 'test-model', $3
+      FROM events WHERE event_name = $1
+      RETURNING id
+    `,
     [eventName, severity, reviewStatus],
   );
+  const id = result.rows[0]?.id;
+  if (id === undefined) {
+    throw new Error(`No event named ${eventName}`);
+  }
+  return id;
 }
 
-describe('GET /findings (needs the database running', () => {
-  beforeAll(() => {
-    if (!process.env.POSTGRES_DB?.endsWith('_test')) {
-      throw new Error(
-        'Refusing to run: these tests delete data and must use a *_test database',
-      );
-    }
-  });
+beforeAll(() => {
+  if (!process.env.POSTGRES_DB?.endsWith('_test')) {
+    throw new Error(
+      'Refusing to run: these tests delete data and must use a *_test database',
+    );
+  }
+});
 
+afterAll(async () => {
+  await app.close();
+  await pool.end();
+});
+
+describe('GET /findings (needs the database running)', () => {
   beforeEach(async () => {
     await pool.query('TRUNCATE events, findings');
     await saveEvents(events);
     await addFinding('ListBuckets', 'low', 'approved');
     await addFinding('ConsoleLogin', 'medium');
     await addFinding('DeleteTrail', 'critical');
-  });
-
-  afterAll(async () => {
-    await app.close();
-    await pool.end();
   });
 
   it('lists findings with the most severe first', async () => {
@@ -78,7 +83,7 @@ describe('GET /findings (needs the database running', () => {
     ]);
   });
 
-  it('includes details from the events', async () => {
+  it('includes details from the event', async () => {
     const response = await app.inject({
       method: 'GET',
       url: '/findings?severity=critical',
@@ -94,7 +99,7 @@ describe('GET /findings (needs the database running', () => {
     });
   });
 
-  it('filters by review status', async () => {
+  it('filers by review status', async () => {
     const response = await app.inject({
       method: 'GET',
       url: '/findings?status=pending',
@@ -115,5 +120,48 @@ describe('GET /findings (needs the database running', () => {
     });
 
     expect(response.json().findings).toHaveLength(1);
+  });
+});
+
+describe('GET /findings/:id (needs the database running)', () => {
+  let findingId: string;
+
+  beforeEach(async () => {
+    await pool.query('TRUNCATE events, findings');
+    await saveEvents(events);
+    findingId = await addFinding('DeleteTrail', 'critical');
+  });
+
+  it('returns the full finding with its original event', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: `/findings/${findingId}`,
+    });
+
+    expect(response.statusCode).toBe(200);
+    const finding = response.json();
+    expect(finding).toMatchObject({
+      severity: 'critical',
+      reasoning: 'reasoning',
+      evidence: ['evidence one'],
+      unknowns: ['unknown one'],
+      reviewStatus: 'pending',
+    });
+    expect(finding.event.eventName).toBe('DeleteTrail');
+    expect(finding.event.requestParameters.name).toBe(
+      'management-events',
+    );
+  });
+
+  it('returns 404 for a finding tha does not exist', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/findings/999999',
+    });
+
+    expect(response.statusCode).toBe(404);
+    expect(response.json()).toEqual({
+      error: 'Finding not found',
+    });
   });
 });

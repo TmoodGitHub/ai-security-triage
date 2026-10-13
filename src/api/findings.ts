@@ -33,6 +33,24 @@ const LIST_FINDINGS = `
     LIMIT $3
 `;
 
+const GET_FINDING = `
+    SELECT
+        f.id,
+        f.event_id AS "eventId",
+        f.severity,
+        f.summary,
+        f.reasoning,
+        f.evidence,
+        f.unknowns,
+        f.model,
+        f.review_status AS "reviewStatus",
+        f.created_at AS "createdAt",
+        e.raw AS "event"
+    FROM findings f
+    JOIN events e ON e.event_id = f.event_id
+    WHERE f.id = $1
+`;
+
 export function registerFindingsRoutes(
   app: FastifyInstance,
   db: Pool,
@@ -71,6 +89,34 @@ export function registerFindingsRoutes(
         limit,
       ]);
       return { findings: result.rows };
+    },
+  );
+
+  app.get<{ Params: { id: number } }>(
+    '/findings/:id',
+    {
+      schema: {
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer', minimum: 1 },
+          },
+          required: ['id'],
+        },
+      },
+    },
+    async (request, reply) => {
+      const result = await db.query(GET_FINDING, [
+        request.params.id,
+      ]);
+
+      if (result.rows.length === 0) {
+        return reply
+          .code(404)
+          .send({ error: 'Finding not found' });
+      }
+
+      return result.rows[0];
     },
   );
 }

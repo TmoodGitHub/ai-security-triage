@@ -29,4 +29,17 @@ describe('API', () => {
     expect(response.statusCode).toBe(400);
     await db.end();
   });
+
+  it('rejects a finding id that is not a number', async () => {
+    const db = new pg.Pool();
+    const app = buildApp({ db, logger: false });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/findings/abc',
+    });
+
+    expect(response.statusCode).toBe(400);
+    await db.end();
+  });
 });
