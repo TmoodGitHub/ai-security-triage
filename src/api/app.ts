@@ -55,6 +55,10 @@ export function buildApp({
     return { status: 'ok' };
   });
 
+  app.get('/me', async (request) => {
+    return request.user;
+  });
+
   registerFindingsRoutes(app, db);
 
   return app;

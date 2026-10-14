@@ -59,6 +59,22 @@ describe('authentication', () => {
   });
 });
 
+describe('GET /me', () => {
+  it('returns who the token belongs to', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/me',
+      headers,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({
+      subject: 'test-analyst',
+      name: null,
+    });
+  });
+});
+
 describe('request validation', () => {
   it('rejects an invalid severity filter', async () => {
     const response = await app.inject({
