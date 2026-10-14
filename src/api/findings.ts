@@ -17,6 +17,7 @@ const LIST_FINDINGS = `
         f.severity,
         f.summary,
         f.review_status AS "reviewStatus",
+        f.classification,
         f.model,
         f.created_at AS "createdAt",
         e.event_name AS "eventName",
@@ -44,6 +45,7 @@ const GET_FINDING = `
         f.unknowns,
         f.model,
         f.review_status AS "reviewStatus",
+        f.classification,
         f.reviewed_at AS "reviewedAt",
         f.reviewed_by AS "reviewedBy",
         f.review_note AS "reviewNote",
@@ -56,11 +58,12 @@ const GET_FINDING = `
 
 const REVIEW_FINDING = `
     UPDATE findings
-    SET review_status = $2, review_note = $3, reviewed_at = now()
+    SET review_status = $2, classification = $3,  review_note = $4, reviewed_at = now()
     WHERE id = $1 AND review_status = 'pending'
     RETURNING
         id,
         review_status AS "reviewStatus",
+        classification,
         reviewed_at AS "reviewedAt",
         reviewed_by AS "reviewedBy",
         review_note AS "reviewNote"
@@ -68,6 +71,10 @@ const REVIEW_FINDING = `
 
 interface ReviewBody {
   decision: 'approved' | 'rejected';
+  classification:
+    | 'true_positive'
+    | 'benign_positive'
+    | 'false_positive';
   note: string;
 }
 
@@ -158,6 +165,14 @@ export function registerFindingsRoutes(
               type: 'string',
               enum: ['approved', 'rejected'],
             },
+            classification: {
+              type: 'string',
+              enum: [
+                'true_positive',
+                'benign_positive',
+                'false_positive',
+              ],
+            },
             note: {
               type: 'string',
               minLength: 1,
@@ -165,18 +180,20 @@ export function registerFindingsRoutes(
               pattern: '\\S',
             },
           },
-          required: ['decision', 'note'],
+          required: ['decision', 'classification', 'note'],
           additionalProperties: false,
         },
       },
     },
     async (request, reply) => {
       const { id } = request.params;
-      const { decision, note } = request.body;
+      const { decision, classification, note } =
+        request.body;
 
       const result = await db.query(REVIEW_FINDING, [
         id,
         decision,
+        classification,
         note,
       ]);
       if (result.rows.length > 0) {

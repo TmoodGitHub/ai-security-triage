@@ -50,7 +50,11 @@ describe('API', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/findings/1/review',
-      payload: { decision: 'maybe', note: 'Unsure' },
+      payload: {
+        decision: 'maybe',
+        classification: 'true_positive',
+        note: 'Unsure',
+      },
     });
 
     expect(response.statusCode).toBe(400);
@@ -64,7 +68,42 @@ describe('API', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/findings/1/review',
-      payload: { note: 'looks fine' },
+      payload: {
+        classification: 'true_positive',
+        note: 'looks fine',
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    await db.end();
+  });
+
+  it('rejects a review with no classification', async () => {
+    const db = new pg.Pool();
+    const app = buildApp({ db, logger: false });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: 'findings/1/review',
+      payload: { decision: 'approved', note: 'Looks fine' },
+    });
+
+    expect(response.statusCode).toBe(400);
+    await db.end();
+  });
+
+  it('reject a review with an invalid classification', async () => {
+    const db = new pg.Pool();
+    const app = buildApp({ db, logger: false });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: 'findings/1/review',
+      payload: {
+        decision: 'approved',
+        classification: 'misc',
+        note: 'Looks fine',
+      },
     });
 
     expect(response.statusCode).toBe(400);
@@ -78,7 +117,10 @@ describe('API', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/findings/1/review',
-      payload: { decision: 'approved' },
+      payload: {
+        decision: 'approved',
+        classification: 'true_positive',
+      },
     });
 
     expect(response.statusCode).toBe(400);
@@ -92,7 +134,11 @@ describe('API', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/findings/1/review',
-      payload: { decision: 'approved', note: '   ' },
+      payload: {
+        decision: 'approved',
+        classification: 'true_positive',
+        note: '   ',
+      },
     });
 
     expect(response.statusCode).toBe(400);

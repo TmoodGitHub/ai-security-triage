@@ -175,19 +175,22 @@ describe('POST /findings:id/review (needs the database running', () => {
     findingId = await addFinding('DeleteTrail', 'critical');
   });
 
-  it('records an approval with a note', async () => {
+  it('records the decision, classification, and note', async () => {
     const response = await app.inject({
       method: 'POST',
       url: `/findings/${findingId}/review`,
       payload: {
         decision: 'approved',
+        classification: 'true_positive',
         note: 'Confirmed: trail deleted from an unknown IP',
       },
     });
 
+    console.log(response.body);
     expect(response.statusCode).toBe(200);
     expect(response.json()).toMatchObject({
       reviewStatus: 'approved',
+      classification: 'true_positive',
       reviewNote:
         'Confirmed: trail deleted from an unknown IP',
     });
@@ -197,7 +200,10 @@ describe('POST /findings:id/review (needs the database running', () => {
       method: 'GET',
       url: `/findings/${findingId}`,
     });
-    expect(saved.json().reviewStatus).toBe('approved');
+    expect(saved.json()).toMatchObject({
+      reviewStatus: 'approved',
+      classification: 'true_positive',
+    });
   });
 
   it('refuses to review a finding twice', async () => {
@@ -206,6 +212,7 @@ describe('POST /findings:id/review (needs the database running', () => {
       url: `/findings/${findingId}/review`,
       payload: {
         decision: 'approved',
+        classification: 'true_positive',
         note: 'First review',
       },
     });
@@ -215,6 +222,7 @@ describe('POST /findings:id/review (needs the database running', () => {
       url: `/findings/${findingId}/review`,
       payload: {
         decision: 'rejected',
+        classification: 'false_positive',
         note: 'Second review',
       },
     });
@@ -231,6 +239,7 @@ describe('POST /findings:id/review (needs the database running', () => {
       url: '/findings/999999/review',
       payload: {
         decision: 'approved',
+        classification: 'true_positive',
         note: 'Does not exist',
       },
     });
