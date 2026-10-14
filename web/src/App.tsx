@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { apiFetch, type CurrentUser } from './api';
+import FindingList from './FindingsList';
 import SignIn from './SignIn';
 
 const TOKEN_KEY = 'triage-token';
@@ -12,6 +13,12 @@ export default function App() {
     null,
   );
 
+  const signOut = useCallback(() => {
+    sessionStorage.removeItem(TOKEN_KEY);
+    setToken(null);
+    setUser(null);
+  }, []);
+
   useEffect(() => {
     if (token === null || user !== null) {
       return;
@@ -19,18 +26,12 @@ export default function App() {
     apiFetch<CurrentUser>('/me', token)
       .then(setUser)
       .catch(() => signOut());
-  }, [token, user]);
+  }, [token, user, signOut]);
 
   function signIn(newToken: string, newUser: CurrentUser) {
     sessionStorage.setItem(TOKEN_KEY, newToken);
     setToken(newToken);
     setUser(newUser);
-  }
-
-  function signOut() {
-    sessionStorage.removeItem(TOKEN_KEY);
-    setToken(null);
-    setUser(null);
   }
 
   if (token === null) {
@@ -48,6 +49,7 @@ export default function App() {
           Sign Out
         </button>
       </header>
+      <FindingList token={token} onAuthError={signOut} />
     </main>
   );
 }

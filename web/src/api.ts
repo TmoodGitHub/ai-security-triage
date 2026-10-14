@@ -36,3 +36,24 @@ export async function apiFetch<T>(
   }
   return response.json() as Promise<T>;
 }
+
+export type Severity =
+  | 'low'
+  | 'medium'
+  | 'high'
+  | 'critical';
+export type ReviewStatus =
+  | 'pending'
+  | 'approved'
+  | 'rejected';
+
+export interface FindingSummary {
+  id: number;
+  severity: Severity;
+  summary: string;
+  reviewStatus: ReviewStatus;
+  eventName: string;
+  eventTime: string;
+  who: string;
+  sourceIpAddress: string;
+}
