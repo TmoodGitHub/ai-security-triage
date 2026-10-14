@@ -10,7 +10,8 @@
     "build": "tsc",
     "ingest": "tsc && node --env-file=.env dist/ingest/run.js",
     "db:check": "tsc && node --env-file=.env dist/db/check.js",
-    "api": "tsc && node --env-file=.env dist/api/server.js"
+    "api": "tsc && node --env-file=.env dist/api/server.js",
+    "token": "tsc && node --env-file=.env dist/auth/make-token.js"
   },
   "repository": {
     "type": "git",
@@ -31,6 +32,7 @@
   },
   "dependencies": {
     "fastify": "^5.12.7",
+    "jose": "^6.2.12",
     "pg": "^8.23.1"
   }
 }
