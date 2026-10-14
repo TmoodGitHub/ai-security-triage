@@ -44,12 +44,32 @@ const GET_FINDING = `
         f.unknowns,
         f.model,
         f.review_status AS "reviewStatus",
+        f.reviewed_at AS "reviewedAt",
+        f.reviewed_by AS "reviewedBy",
+        f.review_note AS "reviewNote",
         f.created_at AS "createdAt",
         e.raw AS "event"
     FROM findings f
     JOIN events e ON e.event_id = f.event_id
     WHERE f.id = $1
 `;
+
+const REVIEW_FINDING = `
+    UPDATE findings
+    SET review_status = $2, review_note = $3, reviewed_at = now()
+    WHERE id = $1 AND review_status = 'pending'
+    RETURNING
+        id,
+        review_status AS "reviewStatus",
+        reviewed_at AS "reviewedAt",
+        reviewed_by AS "reviewedBy",
+        review_note AS "reviewNote"
+`;
+
+interface ReviewBody {
+  decision: 'approved' | 'rejected';
+  note?: string;
+}
 
 export function registerFindingsRoutes(
   app: FastifyInstance,
@@ -117,6 +137,62 @@ export function registerFindingsRoutes(
       }
 
       return result.rows[0];
+    },
+  );
+
+  app.post<{ Params: { id: number }; Body: ReviewBody }>(
+    '/findings/:id/review',
+    {
+      schema: {
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer', minimum: 1 },
+          },
+          required: ['id'],
+        },
+        body: {
+          type: 'object',
+          properties: {
+            decision: {
+              type: 'string',
+              enum: ['approved', 'rejected'],
+            },
+            note: {
+              type: 'string',
+              maxLength: 2000,
+            },
+          },
+          required: ['decision'],
+          additionalProperties: false,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { id } = request.params;
+      const { decision, note } = request.body;
+
+      const result = await db.query(REVIEW_FINDING, [
+        id,
+        decision,
+        note ?? null,
+      ]);
+      if (result.rows.length > 0) {
+        return result.rows[0];
+      }
+
+      const existing = await db.query(
+        'SELECT review_status FROM findings WHERE id = $1',
+        [id],
+      );
+      if (existing.rows.length === 0) {
+        return reply
+          .code(404)
+          .send({ error: 'Finding not found' });
+      }
+      return reply.code(409).send({
+        error: `Finding was already ${existing.rows[0].review_status}`,
+      });
     },
   );
 }

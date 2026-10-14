@@ -42,4 +42,32 @@ describe('API', () => {
     expect(response.statusCode).toBe(400);
     await db.end();
   });
+
+  it('rejects a review with an invalid decision', async () => {
+    const db = new pg.Pool();
+    const app = buildApp({ db, logger: false });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/findings/1/review',
+      payload: { decision: 'maybe' },
+    });
+
+    expect(response.statusCode).toBe(400);
+    await db.end();
+  });
+
+  it('rejects a review with no decision', async () => {
+    const db = new pg.Pool();
+    const app = buildApp({ db, logger: false });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/findings/1/review',
+      payload: { note: 'looks fine' },
+    });
+
+    expect(response.statusCode).toBe(400);
+    await db.end();
+  });
 });

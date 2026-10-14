@@ -165,3 +165,67 @@ describe('GET /findings/:id (needs the database running)', () => {
     });
   });
 });
+
+describe('POST /findings:id/review (needs the database running', () => {
+  let findingId: string;
+
+  beforeEach(async () => {
+    await pool.query('TRUNCATE events, findings');
+    await saveEvents(events);
+    findingId = await addFinding('DeleteTrail', 'critical');
+  });
+
+  it('records an approval with a note', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: `/findings/${findingId}/review`,
+      payload: {
+        decision: 'approved',
+        note: 'Confirmed: trail deleted from an unknown IP',
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      reviewStatus: 'approved',
+      reviewNote:
+        'Confirmed: trail deleted from an unknown IP',
+    });
+    expect(response.json().reviewedAt).not.toBeNull();
+
+    const saved = await app.inject({
+      method: 'GET',
+      url: `/findings/${findingId}`,
+    });
+    expect(saved.json().reviewStatus).toBe('approved');
+  });
+
+  it('refuses to review a finding twice', async () => {
+    await app.inject({
+      method: 'POST',
+      url: `/findings/${findingId}/review`,
+      payload: { decision: 'approved' },
+    });
+
+    const second = await app.inject({
+      method: 'POST',
+      url: `/findings/${findingId}/review`,
+      payload: { decision: 'rejected' },
+    });
+
+    expect(second.statusCode).toBe(409);
+    expect(second.json()).toEqual({
+      error: 'Finding was already approved',
+    });
+  });
+
+  it('returns 404 when reviewing a finding that does not exist', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/findings/999999/review',
+      payload: { decision: 'approved' },
+    });
+
+    expect(response.statusCode).toBe(404);
+  });
+});
