@@ -68,7 +68,7 @@ const REVIEW_FINDING = `
 
 interface ReviewBody {
   decision: 'approved' | 'rejected';
-  note?: string;
+  note: string;
 }
 
 export function registerFindingsRoutes(
@@ -160,10 +160,12 @@ export function registerFindingsRoutes(
             },
             note: {
               type: 'string',
+              minLength: 1,
               maxLength: 2000,
+              pattern: '\\S',
             },
           },
-          required: ['decision'],
+          required: ['decision', 'note'],
           additionalProperties: false,
         },
       },
@@ -175,7 +177,7 @@ export function registerFindingsRoutes(
       const result = await db.query(REVIEW_FINDING, [
         id,
         decision,
-        note ?? null,
+        note,
       ]);
       if (result.rows.length > 0) {
         return result.rows[0];

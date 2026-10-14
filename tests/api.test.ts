@@ -50,7 +50,7 @@ describe('API', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/findings/1/review',
-      payload: { decision: 'maybe' },
+      payload: { decision: 'maybe', note: 'Unsure' },
     });
 
     expect(response.statusCode).toBe(400);
@@ -65,6 +65,34 @@ describe('API', () => {
       method: 'POST',
       url: '/findings/1/review',
       payload: { note: 'looks fine' },
+    });
+
+    expect(response.statusCode).toBe(400);
+    await db.end();
+  });
+
+  it('rejects a review with no note', async () => {
+    const db = new pg.Pool();
+    const app = buildApp({ db, logger: false });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/findings/1/review',
+      payload: { decision: 'approved' },
+    });
+
+    expect(response.statusCode).toBe(400);
+    await db.end();
+  });
+
+  it('rejects a review whose note is only spaces', async () => {
+    const db = new pg.Pool();
+    const app = buildApp({ db, logger: false });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/findings/1/review',
+      payload: { decision: 'approved', note: '   ' },
     });
 
     expect(response.statusCode).toBe(400);

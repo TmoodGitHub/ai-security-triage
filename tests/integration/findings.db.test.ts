@@ -204,13 +204,19 @@ describe('POST /findings:id/review (needs the database running', () => {
     await app.inject({
       method: 'POST',
       url: `/findings/${findingId}/review`,
-      payload: { decision: 'approved' },
+      payload: {
+        decision: 'approved',
+        note: 'First review',
+      },
     });
 
     const second = await app.inject({
       method: 'POST',
       url: `/findings/${findingId}/review`,
-      payload: { decision: 'rejected' },
+      payload: {
+        decision: 'rejected',
+        note: 'Second review',
+      },
     });
 
     expect(second.statusCode).toBe(409);
@@ -223,7 +229,10 @@ describe('POST /findings:id/review (needs the database running', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/findings/999999/review',
-      payload: { decision: 'approved' },
+      payload: {
+        decision: 'approved',
+        note: 'Does not exist',
+      },
     });
 
     expect(response.statusCode).toBe(404);
