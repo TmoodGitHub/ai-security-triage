@@ -1,0 +1,4 @@
+ALTER TABLE findings
+    ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ,
+    ADD COLUMN IF NOT EXISTS reviewed_by TEXT,
+    ADD COLUMN IF NOT EXISTS review_note TEXT;
