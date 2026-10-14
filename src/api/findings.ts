@@ -58,7 +58,7 @@ const GET_FINDING = `
 
 const REVIEW_FINDING = `
     UPDATE findings
-    SET review_status = $2, classification = $3,  review_note = $4, reviewed_at = now()
+    SET review_status = $2, classification = $3,  review_note = $4, reviewed_by = $5, reviewed_at = now()
     WHERE id = $1 AND review_status = 'pending'
     RETURNING
         id,
@@ -195,6 +195,7 @@ export function registerFindingsRoutes(
         decision,
         classification,
         note,
+        request.user?.subject,
       ]);
       if (result.rows.length > 0) {
         return result.rows[0];

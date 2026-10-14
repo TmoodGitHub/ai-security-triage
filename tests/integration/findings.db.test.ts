@@ -7,10 +7,11 @@ import {
   beforeEach,
   afterAll,
 } from 'vitest';
-import { ingestCloudTrail } from '../../src/ingest/ingest';
-import { saveEvents } from '../../src/db/events';
-import { pool } from '../../src/db/client';
-import { buildApp } from '../../src/api/app';
+import { ingestCloudTrail } from '../../src/ingest/ingest.js';
+import { saveEvents } from '../../src/db/events.js';
+import { pool } from '../../src/db/client.js';
+import { buildApp } from '../../src/api/app.js';
+import { authHeaders, verify } from '../helpers.js';
 
 const samplePath = new URL(
   '../../samples/cloudtrail_sample.json',
@@ -19,7 +20,8 @@ const samplePath = new URL(
 const events = ingestCloudTrail(
   readFileSync(samplePath, 'utf-8'),
 );
-const app = buildApp({ db: pool, logger: false });
+const app = buildApp({ db: pool, verify, logger: false });
+let headers: { authorization: string };
 
 async function addFinding(
   eventName: string,
@@ -27,8 +29,8 @@ async function addFinding(
   reviewStatus = 'pending',
 ): Promise<string> {
   const result = await pool.query<{ id: string }>(
-    `INSERT INTO findings 
-        (event_id, severity, summary, reasoning, evidence, unknowns, model, review_status)
+    `
+      INSERT INTO findings (event_id, severity, summary, reasoning, evidence, unknowns, model, review_status)
       SELECT event_id, $2, 'summary', 'reasoning', ARRAY['evidence one'], ARRAY['unknown one'], 'test-model', $3
       FROM events WHERE event_name = $1
       RETURNING id
@@ -42,7 +44,8 @@ async function addFinding(
   return id;
 }
 
-beforeAll(() => {
+beforeAll(async () => {
+  headers = await authHeaders('analyst-1');
   if (!process.env.POSTGRES_DB?.endsWith('_test')) {
     throw new Error(
       'Refusing to run: these tests delete data and must use a *_test database',
@@ -64,10 +67,11 @@ describe('GET /findings (needs the database running)', () => {
     await addFinding('DeleteTrail', 'critical');
   });
 
-  it('lists findings with the most severe first', async () => {
+  it('list findings with the most severe first', async () => {
     const response = await app.inject({
       method: 'GET',
       url: '/findings',
+      headers,
     });
 
     expect(response.statusCode).toBe(200);
@@ -87,6 +91,7 @@ describe('GET /findings (needs the database running)', () => {
     const response = await app.inject({
       method: 'GET',
       url: '/findings?severity=critical',
+      headers,
     });
 
     const [finding] = response.json().findings;
@@ -99,10 +104,11 @@ describe('GET /findings (needs the database running)', () => {
     });
   });
 
-  it('filers by review status', async () => {
+  it('filters by review status', async () => {
     const response = await app.inject({
       method: 'GET',
       url: '/findings?status=pending',
+      headers,
     });
 
     const names = response
@@ -117,13 +123,14 @@ describe('GET /findings (needs the database running)', () => {
     const response = await app.inject({
       method: 'GET',
       url: '/findings?limit=1',
+      headers,
     });
 
     expect(response.json().findings).toHaveLength(1);
   });
 });
 
-describe('GET /findings/:id (needs the database running)', () => {
+describe('GET /findings/:id (needs the database running', async () => {
   let findingId: string;
 
   beforeEach(async () => {
@@ -136,6 +143,7 @@ describe('GET /findings/:id (needs the database running)', () => {
     const response = await app.inject({
       method: 'GET',
       url: `/findings/${findingId}`,
+      headers,
     });
 
     expect(response.statusCode).toBe(200);
@@ -153,10 +161,11 @@ describe('GET /findings/:id (needs the database running)', () => {
     );
   });
 
-  it('returns 404 for a finding tha does not exist', async () => {
+  it('returns 404 for a finding that does not exist', async () => {
     const response = await app.inject({
       method: 'GET',
-      url: '/findings/999999',
+      url: '/findings/999999999',
+      headers,
     });
 
     expect(response.statusCode).toBe(404);
@@ -166,7 +175,7 @@ describe('GET /findings/:id (needs the database running)', () => {
   });
 });
 
-describe('POST /findings:id/review (needs the database running', () => {
+describe('POST /findings/:id/review (needs the database running', () => {
   let findingId: string;
 
   beforeEach(async () => {
@@ -179,6 +188,7 @@ describe('POST /findings:id/review (needs the database running', () => {
     const response = await app.inject({
       method: 'POST',
       url: `/findings/${findingId}/review`,
+      headers,
       payload: {
         decision: 'approved',
         classification: 'true_positive',
@@ -186,19 +196,20 @@ describe('POST /findings:id/review (needs the database running', () => {
       },
     });
 
-    console.log(response.body);
     expect(response.statusCode).toBe(200);
     expect(response.json()).toMatchObject({
       reviewStatus: 'approved',
       classification: 'true_positive',
       reviewNote:
         'Confirmed: trail deleted from an unknown IP',
+      reviewedBy: 'analyst-1',
     });
     expect(response.json().reviewedAt).not.toBeNull();
 
     const saved = await app.inject({
       method: 'GET',
       url: `/findings/${findingId}`,
+      headers,
     });
     expect(saved.json()).toMatchObject({
       reviewStatus: 'approved',
@@ -210,6 +221,7 @@ describe('POST /findings:id/review (needs the database running', () => {
     await app.inject({
       method: 'POST',
       url: `/findings/${findingId}/review`,
+      headers,
       payload: {
         decision: 'approved',
         classification: 'true_positive',
@@ -220,6 +232,7 @@ describe('POST /findings:id/review (needs the database running', () => {
     const second = await app.inject({
       method: 'POST',
       url: `/findings/${findingId}/review`,
+      headers,
       payload: {
         decision: 'rejected',
         classification: 'false_positive',
@@ -236,7 +249,8 @@ describe('POST /findings:id/review (needs the database running', () => {
   it('returns 404 when reviewing a finding that does not exist', async () => {
     const response = await app.inject({
       method: 'POST',
-      url: '/findings/999999/review',
+      url: '/findings/9999999/review',
+      headers,
       payload: {
         decision: 'approved',
         classification: 'true_positive',
