@@ -12,8 +12,8 @@ AI-assisted triage of AWS security logs. The service takes in CloudTrail events,
 - [x] TypeScript project setup
 - [x] Log intake and cleanup
 - [x] Storage in Postgres
-- [x] Findings API
 - [x] AI triage step, with accuracy tests
+- [x] Findings API
 - [ ] Analyst screen
 - [ ] Infrastructure in Terraform, tests on every push
 
