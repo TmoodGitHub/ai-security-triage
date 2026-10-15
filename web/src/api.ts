@@ -47,8 +47,18 @@ export type ReviewStatus =
   | 'approved'
   | 'rejected';
 
+export type Classification =
+  | 'true_positive'
+  | 'benign_positive'
+  | 'false_positive';
+
+export interface Filters {
+  severity: Severity | '';
+  status: ReviewStatus | '';
+}
+
 export interface FindingSummary {
-  id: number;
+  id: string;
   severity: Severity;
   summary: string;
   reviewStatus: ReviewStatus;
@@ -56,4 +66,22 @@ export interface FindingSummary {
   eventTime: string;
   who: string;
   sourceIpAddress: string;
+}
+
+export interface FindingDetail {
+  id: string;
+  eventId: string;
+  severity: Severity;
+  summary: string;
+  reasoning: string;
+  evidence: string[];
+  unknowns: string[];
+  model: string;
+  reviewStatus: ReviewStatus;
+  classification: Classification | null;
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+  reviewNote: string | null;
+  createdAt: string;
+  event: unknown;
 }

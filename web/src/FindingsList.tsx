@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   AuthError,
   apiFetch,
+  type Filters,
   type FindingSummary,
   type ReviewStatus,
   type Severity,
@@ -9,19 +10,20 @@ import {
 
 interface FindingListProps {
   token: string;
+  filters: Filters;
+  onFilterChange: (filters: Filters) => void;
+  onSelect: (id: string) => void;
   onAuthError: () => void;
 }
 
-export default function FindingList({
+export default function FindingsList({
   token,
+  filters,
+  onFilterChange,
+  onSelect,
   onAuthError,
 }: FindingListProps) {
-  const [severity, setSeverity] = useState<Severity | ''>(
-    '',
-  );
-  const [status, setStatus] = useState<ReviewStatus | ''>(
-    'pending',
-  );
+  const { severity, status } = filters;
   const [findings, setFindings] = useState<
     FindingSummary[] | null
   >(null);
@@ -64,9 +66,12 @@ export default function FindingList({
           <select
             value={severity}
             onChange={(event) =>
-              setSeverity(
-                event.target.value as Severity | '',
-              )
+              onFilterChange({
+                ...filters,
+                severity: event.target.value as
+                  | Severity
+                  | '',
+              })
             }
           >
             <option value=''>All</option>
@@ -81,9 +86,12 @@ export default function FindingList({
           <select
             value={status}
             onChange={(event) =>
-              setStatus(
-                event.target.value as ReviewStatus | '',
-              )
+              onFilterChange({
+                ...filters,
+                status: event.target.value as
+                  | ReviewStatus
+                  | '',
+              })
             }
           >
             <option value=''>All</option>
@@ -126,7 +134,15 @@ export default function FindingList({
                     {finding.severity}
                   </span>
                 </td>
-                <td>{finding.summary}</td>
+                <td>
+                  <button
+                    type='button'
+                    className='link-button'
+                    onClick={() => onSelect(finding.id)}
+                  >
+                    {finding.summary}
+                  </button>
+                </td>
                 <td>{finding.eventName}</td>
                 <td>{finding.who}</td>
                 <td>{finding.sourceIpAddress}</td>

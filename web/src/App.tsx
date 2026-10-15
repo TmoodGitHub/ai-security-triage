@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import { apiFetch, type CurrentUser } from './api';
-import FindingList from './FindingsList';
+import {
+  apiFetch,
+  type CurrentUser,
+  type Filters,
+} from './api';
+import FindingDetail from './FindingDetail';
+import FindingsList from './FindingsList';
 import SignIn from './SignIn';
 
 const TOKEN_KEY = 'triage-token';
@@ -12,11 +17,19 @@ export default function App() {
   const [user, setUser] = useState<CurrentUser | null>(
     null,
   );
+  const [filters, setFilters] = useState<Filters>({
+    severity: '',
+    status: 'pending',
+  });
+  const [selectedId, setSelectedId] = useState<
+    string | null
+  >(null);
 
   const signOut = useCallback(() => {
     sessionStorage.removeItem(TOKEN_KEY);
     setToken(null);
     setUser(null);
+    setSelectedId(null);
   }, []);
 
   useEffect(() => {
@@ -49,7 +62,22 @@ export default function App() {
           Sign Out
         </button>
       </header>
-      <FindingList token={token} onAuthError={signOut} />
+      {selectedId === null ? (
+        <FindingsList
+          token={token}
+          filters={filters}
+          onFilterChange={setFilters}
+          onSelect={setSelectedId}
+          onAuthError={signOut}
+        />
+      ) : (
+        <FindingDetail
+          id={selectedId}
+          token={token}
+          onBack={() => setSelectedId(null)}
+          onAuthError={signOut}
+        />
+      )}
     </main>
   );
 }
