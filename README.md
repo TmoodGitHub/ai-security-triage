@@ -17,7 +17,7 @@ AI-assisted triage of AWS security logs. The service takes in CloudTrail events,
 - [x] Analyst screen
 - [x] Tests on every push (GitHub Actions)
 - [x] Build the analyst screen in CI
-- [ ] Cost, time and failure rate per alert
+- [x] Cost, time and failure rate per alert + Python tests
 - [ ] Evals: count ratings that were too low vs too high
 - [ ] Security dashboard design for the analyst screen
 - [ ] Infrastructure in Terraform (live on AWS)
