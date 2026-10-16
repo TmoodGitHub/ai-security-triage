@@ -3,7 +3,9 @@ import {
   AuthError,
   apiFetch,
   type FindingDetail as Finding,
+  type ReviewResult,
 } from './api';
+import ReviewForm from './ReviewForm';
 
 interface FindingDetailProps {
   id: string;
@@ -28,7 +30,9 @@ export default function FindingDetail({
     null,
   );
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const reviewHeadingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,11 +54,20 @@ export default function FindingDetail({
     };
   }, [id, token, onAuthError]);
 
+  function handleReviewed(result: ReviewResult) {
+    setFinding((current) =>
+      current === null ? null : { ...current, ...result },
+    );
+    setSaved(true);
+    reviewHeadingRef.current?.focus();
+  }
+
+  const loaded = finding !== null;
   useEffect(() => {
-    if (finding !== null) {
+    if (loaded) {
       headingRef.current?.focus();
     }
-  }, [finding]);
+  }, [loaded]);
 
   return (
     <section aria-labelledby='detail-heading'>
@@ -116,9 +129,17 @@ export default function FindingDetail({
             <p>None listed.</p>
           )}
 
-          <h3>Review</h3>
+          <h3 ref={reviewHeadingRef} tabIndex={-1}>
+            Review
+          </h3>
+          <p role='status'>{saved && 'Review saved.'}</p>
           {finding.reviewStatus === 'pending' ? (
-            <p>Not reviewed yet.</p>
+            <ReviewForm
+              id={finding.id}
+              token={token}
+              onReviewed={handleReviewed}
+              onAuthError={onAuthError}
+            />
           ) : (
             <dl className='facts'>
               <dt>Decision</dt>

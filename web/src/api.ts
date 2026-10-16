@@ -85,3 +85,12 @@ export interface FindingDetail {
   createdAt: string;
   event: unknown;
 }
+
+export type ReviewResult = Pick<
+  FindingDetail,
+  | 'reviewStatus'
+  | 'classification'
+  | 'reviewedAt'
+  | 'reviewedBy'
+  | 'reviewNote'
+>;
