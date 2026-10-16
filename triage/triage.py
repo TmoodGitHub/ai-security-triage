@@ -1,13 +1,19 @@
 import json
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from time import perf_counter
 from typing import Literal
 
 import anthropic
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 MODEL = "claude-haiku-4-5"
+# US dollars per million token for MODEL. Update these if MODEL changes.
+# Source: https://platform.claude.com/docs/en/about-claude/pricing (checked 2026-10-16)
+PRICE_PER_MILLION_INPUT = 1.00
+PRICE_PER_MILLION_OUTPUT = 5.00
 SYSTEM_PROMPT = """You are a security analyst triaging AWS CloudTrail events.
 
 Rate each event using exactly these severity levels:
@@ -43,6 +49,24 @@ class TriageResult(BaseModel):
     evidence: list[str] = Field(description="The specific fields and values from the event that support your assessment.")
     unknowns: list[str] = Field(description="Relevant things the event cannot tell you.")
 
+class TriageError(Exception):
+    """
+        The model answered, but not with a usable result.
+    """
+
+@dataclass
+class TriageCall:
+    result: TriageResult
+    input_tokens: int
+    output_tokens: int
+    seconds: float
+
+    @property
+    def cost(self) -> float:
+        return (
+            self.input_tokens * PRICE_PER_MILLION_INPUT + self.output_tokens * PRICE_PER_MILLION_OUTPUT
+        ) / 1_000_000
+
 def format_related(related: list[dict]) -> str:
     if not related:
         return "Related events: none found."
@@ -58,20 +82,33 @@ def format_related(related: list[dict]) -> str:
         )
     return "\n".join(lines)
 
-def triage_event(client: anthropic.Anthropic, event: dict, related: list[dict] | None = None) -> TriageResult:
+def triage_event(client: anthropic.Anthropic, event: dict, related: list[dict] | None = None) -> TriageCall:
     content = "Triage this CloudTrail event:\n\n" + json.dumps(event, indent=2)
     if related is not None:
         content += "\n\n" + format_related(related)
 
-    response = client.messages.parse(
-        model=MODEL,
-        max_tokens=1024,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": content}],
-        output_format=TriageResult,
-    )
-    return response.parsed_output
+    start = perf_counter()
+    try:
+        response = client.messages.parse(
+            model=MODEL,
+            max_tokens=1024,
+            system=SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": content}],
+            output_format=TriageResult
+        )
+    except ValidationError as error:
+        raise TriageError(f"response did not match the schema: {error}") from error
+    seconds = perf_counter() - start
 
+    if response.parsed_output is None:
+        raise TriageError(f"no usable result (stop reason: {response.stop_reason})")
+
+    return TriageCall(
+        result=response.parsed_output,
+        input_tokens=response.usage.input_tokens,
+        output_tokens=response.usage.output_tokens,
+        seconds=seconds,
+    )
 
 if __name__ == "__main__":
     load_dotenv()
@@ -79,11 +116,13 @@ if __name__ == "__main__":
 
     events = json.loads(Path("samples/cloudtrail_sample.json").read_text())["Records"]
     for event in events[:5]:
-        result = triage_event(client, event)
+        call = triage_event(client, event)
+        result = call.result
         print(f"{event['eventName']}: {result.severity.upper()}")
         print(f"  {result.summary}")
         print(f"  Why: {result.reasoning}")
         print(f"  Evidence: {result.evidence}")
         print(f"  Unknowns: {result.unknowns}")
+        print(f"  {call.input_tokens} tokens in, {call.output_tokens} out, {call.seconds:.1f}s, ${call.cost:.4f}")
         print()
     

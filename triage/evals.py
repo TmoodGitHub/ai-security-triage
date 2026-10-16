@@ -1,13 +1,14 @@
 import argparse
 import hashlib
 import json
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 
 import anthropic
 from dotenv import load_dotenv
 
-from triage.triage import MODEL, SYSTEM_PROMPT, triage_event
+from triage.triage import MODEL, SYSTEM_PROMPT, TriageError, triage_event
 
 LEVELS = ["low","medium","high","critical"]
 CASES_PATH = Path(__file__).parent / "eval_cases.json"
@@ -65,11 +66,21 @@ def related_from_cases(target: dict, cases: list[dict], limit: int = 20) -> list
     related.sort(key=lambda r: r["event_time"])
     return related[:limit]
 
+@dataclass
+class EvalRun:
+    total: int
+    exact: int
+    within_one: int
+    failed: int
+    avg_cost: float
+    avg_seconds: float
 
-def run_evals(client: anthropic.Anthropic, with_context: bool) -> tuple[int, int, int]:
+def run_evals(client: anthropic.Anthropic, with_context: bool) -> EvalRun:
     cases = json.loads(CASES_PATH.read_text())
     exact = 0
     within_one = 0
+    failed = 0
+    calls = []
     misses = []
 
     mode = "with related events" if with_context else "without related events"
@@ -77,8 +88,18 @@ def run_evals(client: anthropic.Anthropic, with_context: bool) -> tuple[int, int
     print(f"{'#':>3}  {'event':<32} {'expected':<9} {'actual':<9} result")
 
     for case in cases:
+        name = case["event"]["eventName"]
         related = related_from_cases(case["event"], cases) if with_context else None
-        result = triage_event(client, case["event"], related)
+        try:
+            call = triage_event(client, case["event"], related)
+        except (anthropic.APIError, TriageError) as error:
+            failed += 1
+            print(f"{case['id']:>3}  {name:<32} {case['expected']:<9} {'-':<9} FAILED: {error}")
+            continue
+
+        calls.append(call)
+        result = call.result
+
         gap = distance(case["expected"], result.severity)
 
         if gap == 0:
@@ -94,31 +115,41 @@ def run_evals(client: anthropic.Anthropic, with_context: bool) -> tuple[int, int
         if gap > 0:
             misses.append((case, result))
 
-        print(f"{case['id']:>3}  {case['event']["eventName"]:<32} {case['expected']:<9} {result.severity:<9} {mark}")
+        print(f"{case['id']:>3}  {name:<32} {case['expected']:<9} {result.severity:<9} {mark}")
 
     total = len(cases)
-    print(f"\nExact match       {exact}/{total} ({exact / total:.0%})")
+    avg_cost = sum(c.cost for c in calls) / len(calls) if calls else 0.0
+    avg_seconds = sum(c.seconds for c in calls) / len(calls) if calls else 0.0
+
+    print(f"\nExact match:      {exact}/{total} ({exact / total:.0%})")
     print(f"Within one level: {within_one}/{total} ({within_one / total:.0%})")
+    print(f"Failed calls:     {failed}/{total}")
+    print(f"Avg per alert:    ${avg_cost:.4f}, {avg_seconds:.1f}s")
+    print(f"Per 1,000 alerts: ${avg_cost * 1000:.2f}")
 
     if misses:
-        print("\nDisaggrements:")
+        print("\nDisagreements:")
         for case, result in misses:
             print(f"\n#{case['id']} {case['event']['eventName']}: expected {case['expected']}, got {result.severity}")
             print(f"  Your note: {case['note']}")
             print(f"  Claude's reasoning: {result.reasoning}")
 
-    return exact, within_one, total
+    return EvalRun(total, exact, within_one, failed, avg_cost, avg_seconds)
+        
 
 
 def prompt_fingerprint() -> str:
     return hashlib.sha256(SYSTEM_PROMPT.encode("utf-8")).hexdigest()[:8]
 
 
-def append_to_log(exact: int, within_one: int, total: int, note: str) -> None:
+def append_to_log(run: EvalRun, note: str) -> None:
     row = (
         f"| {datetime.now().strftime('%Y-%m-%d %H:%M')} | {MODEL} | `{prompt_fingerprint()}` "
-        f"| {exact}/{total} ({exact / total:.0%}) "
-        f"| {within_one}/{total} ({within_one / total:.0%}) "
+        f"| {run.exact}/{run.total} ({run.exact / run.total:.0%}) "
+        f"| {run.within_one}/{run.total} ({run.within_one / run.total:.0%}) "
+        f"| {run.failed}/{run.total} "
+        f"| ${run.avg_cost * 1000:.2f} "
+        f"| {run.avg_seconds:.1f}s "
         f"| {note.replace('|', '/')} |\n"
     )
     with LOG_PATH.open("a", encoding="utf-8") as log:
@@ -132,9 +163,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     load_dotenv()
-    exact, within_one, total = run_evals(anthropic.Anthropic(), args.context)
+    run = run_evals(anthropic.Anthropic(), args.context)
 
     if args.log:
         note = ("[with context] " if args.context else "[no context] ") + args.log
-        append_to_log(exact, within_one, total, note)
+        append_to_log(run, note)
         print(f"\nAdded to {LOG_PATH.name} (prompt {prompt_fingerprint()})")
