@@ -27,40 +27,55 @@ export default function FindingsList({
   onAuthError,
 }: FindingListProps) {
   const { severity, status } = filters;
-  const [findings, setFindings] = useState<
-    FindingSummary[] | null
-  >(null);
-  const [error, setError] = useState<string | null>(null);
+  const params = new URLSearchParams();
+  if (severity) params.set('severity', severity);
+  if (status) params.set('status', status);
+  const query = params.toString();
+
+  const [result, setResult] = useState<{
+    query: string;
+    findings: FindingSummary[] | null;
+    error: string | null;
+  } | null>(null);
+  const current = result?.query === query ? result : null;
+  const findings = current?.findings ?? null;
+  const error = current?.error ?? null;
+
   const headingRef = useRef<HTMLHeadingElement>(null);
   const pendingFocusId = useRef(focusId);
   usePageTitle('Findings');
 
   useEffect(() => {
     let cancelled = false;
-    setFindings(null);
-    setError(null);
-
-    const params = new URLSearchParams();
-    if (severity) params.set('severity', severity);
-    if (status) params.set('status', status);
 
     apiFetch<{ findings: FindingSummary[] }>(
-      `/findings?${params}`,
+      `/findings?${query}`,
       token,
     )
       .then((data) => {
-        if (!cancelled) setFindings(data.findings);
+        if (!cancelled) {
+          setResult({
+            query,
+            findings: data.findings,
+            error: null,
+          });
+        }
       })
       .catch((err) => {
         if (cancelled) return;
         if (err instanceof AuthError) onAuthError();
-        else setError(err.message);
+        else
+          setResult({
+            query,
+            findings: null,
+            error: err.message,
+          });
       });
 
     return () => {
       cancelled = true;
     };
-  }, [severity, status, token, onAuthError]);
+  }, [query, token, onAuthError]);
 
   useEffect(() => {
     if (
@@ -138,50 +153,58 @@ export default function FindingsList({
       {error && <p role='alert'>{error}</p>}
 
       {findings !== null && findings.length > 0 && (
-        <table>
-          <thead>
-            <tr>
-              <th scope='col'>Severity</th>
-              <th scope='col'>Summary</th>
-              <th scope='col'>Event</th>
-              <th scope='col'>Who</th>
-              <th scope='col'>Source IP</th>
-              <th scope='col'>Event time</th>
-              <th scope='col'>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {findings.map((finding) => (
-              <tr key={finding.id}>
-                <td>
-                  <span
-                    className={`severity severity-${finding.severity}`}
-                  >
-                    {finding.severity}
-                  </span>
-                </td>
-                <td>
-                  <button
-                    type='button'
-                    className='link-button'
-                    onClick={() => onSelect(finding.id)}
-                  >
-                    {finding.summary}
-                  </button>
-                </td>
-                <td>{finding.eventName}</td>
-                <td>{finding.who}</td>
-                <td>{finding.sourceIpAddress}</td>
-                <td>
-                  {new Date(
-                    finding.eventTime,
-                  ).toLocaleString()}
-                </td>
-                <td>{finding.reviewStatus}</td>
+        <div
+          className='table-scroll'
+          role='region'
+          aria-label='Findings table'
+          tabIndex={0}
+        >
+          <table>
+            <thead>
+              <tr>
+                <th scope='col'>Severity</th>
+                <th scope='col'>Summary</th>
+                <th scope='col'>Event</th>
+                <th scope='col'>Who</th>
+                <th scope='col'>Source IP</th>
+                <th scope='col'>Event time</th>
+                <th scope='col'>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {findings.map((finding) => (
+                <tr key={finding.id}>
+                  <td>
+                    <span
+                      className={`severity severity-${finding.severity}`}
+                    >
+                      {finding.severity}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      type='button'
+                      id={`finding-${finding.id}`}
+                      className='link-button'
+                      onClick={() => onSelect(finding.id)}
+                    >
+                      {finding.summary}
+                    </button>
+                  </td>
+                  <td>{finding.eventName}</td>
+                  <td>{finding.who}</td>
+                  <td>{finding.sourceIpAddress}</td>
+                  <td>
+                    {new Date(
+                      finding.eventTime,
+                    ).toLocaleString()}
+                  </td>
+                  <td>{finding.reviewStatus}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   );

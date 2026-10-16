@@ -38,8 +38,6 @@ export default function FindingDetail({
 
   useEffect(() => {
     let cancelled = false;
-    setFinding(null);
-    setError(null);
 
     apiFetch<Finding>(`/findings/${id}`, token)
       .then((data) => {
