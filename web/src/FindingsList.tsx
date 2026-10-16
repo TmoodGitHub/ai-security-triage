@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   AuthError,
   apiFetch,
@@ -7,10 +7,12 @@ import {
   type ReviewStatus,
   type Severity,
 } from './api';
+import { usePageTitle } from './usePageTitle';
 
 interface FindingListProps {
   token: string;
   filters: Filters;
+  focusId: string | null;
   onFilterChange: (filters: Filters) => void;
   onSelect: (id: string) => void;
   onAuthError: () => void;
@@ -19,6 +21,7 @@ interface FindingListProps {
 export default function FindingsList({
   token,
   filters,
+  focusId,
   onFilterChange,
   onSelect,
   onAuthError,
@@ -28,6 +31,9 @@ export default function FindingsList({
     FindingSummary[] | null
   >(null);
   const [error, setError] = useState<string | null>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const pendingFocusId = useRef(focusId);
+  usePageTitle('Findings');
 
   useEffect(() => {
     let cancelled = false;
@@ -56,9 +62,29 @@ export default function FindingsList({
     };
   }, [severity, status, token, onAuthError]);
 
+  useEffect(() => {
+    if (
+      findings === null ||
+      pendingFocusId.current === null
+    ) {
+      return;
+    }
+    const row = document.getElementById(
+      `finding-${pendingFocusId.current}`,
+    );
+    (row ?? headingRef.current)?.focus();
+    pendingFocusId.current = null;
+  }, [findings]);
+
   return (
     <section aria-labelledby='findings-heading'>
-      <h2 id='findings-heading'>Findings</h2>
+      <h2
+        id='findings-heading'
+        ref={headingRef}
+        tabIndex={-1}
+      >
+        Findings
+      </h2>
 
       <div className='filters'>
         <label>

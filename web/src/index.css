@@ -142,3 +142,21 @@ pre {
 details {
   margin-top: 1.5rem;
 }
+
+:focus-visible {
+  outline: 3px solid #0b57d0;
+  outline-offset: 2px;
+}
+
+[tabindex='-1']:focus {
+  outline: none;
+}
+
+header,
+.filters {
+  flex-wrap: wrap;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}

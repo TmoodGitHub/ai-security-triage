@@ -24,12 +24,16 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<
     string | null
   >(null);
+  const [lastViewedId, setLastViewedId] = useState<
+    string | null
+  >(null);
 
   const signOut = useCallback(() => {
     sessionStorage.removeItem(TOKEN_KEY);
     setToken(null);
     setUser(null);
     setSelectedId(null);
+    setLastViewedId(null);
   }, []);
 
   useEffect(() => {
@@ -47,6 +51,11 @@ export default function App() {
     setUser(newUser);
   }
 
+  function closeFinding() {
+    setLastViewedId(selectedId);
+    setSelectedId(null);
+  }
+
   if (token === null) {
     return <SignIn onSignIn={signIn} />;
   }
@@ -59,13 +68,14 @@ export default function App() {
           <p>Signed in as {user.name ?? user.subject}</p>
         )}
         <button type='button' onClick={signOut}>
-          Sign Out
+          Sign out
         </button>
       </header>
       {selectedId === null ? (
         <FindingsList
           token={token}
           filters={filters}
+          focusId={lastViewedId}
           onFilterChange={setFilters}
           onSelect={setSelectedId}
           onAuthError={signOut}
@@ -74,7 +84,7 @@ export default function App() {
         <FindingDetail
           id={selectedId}
           token={token}
-          onBack={() => setSelectedId(null)}
+          onBack={closeFinding}
           onAuthError={signOut}
         />
       )}

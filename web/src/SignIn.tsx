@@ -4,6 +4,7 @@ import {
   apiFetch,
   type CurrentUser,
 } from './api';
+import { usePageTitle } from './usePageTitle';
 
 interface SignInProps {
   onSignIn: (token: string, user: CurrentUser) => void;
@@ -13,6 +14,7 @@ export default function SignIn({ onSignIn }: SignInProps) {
   const [token, setToken] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+  usePageTitle('Sign in');
 
   async function handleSubmit(
     event: SubmitEvent<HTMLFormElement>,

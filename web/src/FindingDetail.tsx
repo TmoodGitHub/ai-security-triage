@@ -6,6 +6,7 @@ import {
   type ReviewResult,
 } from './api';
 import ReviewForm from './ReviewForm';
+import { usePageTitle } from './usePageTitle';
 
 interface FindingDetailProps {
   id: string;
@@ -33,6 +34,7 @@ export default function FindingDetail({
   const [saved, setSaved] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const reviewHeadingRef = useRef<HTMLHeadingElement>(null);
+  usePageTitle(finding?.summary ?? 'Loading finding');
 
   useEffect(() => {
     let cancelled = false;
