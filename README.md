@@ -18,7 +18,8 @@ AI-assisted triage of AWS security logs. The service takes in CloudTrail events,
 - [x] Tests on every push (GitHub Actions)
 - [x] Build the analyst screen in CI
 - [x] Cost, time and failure rate per alert + Python tests
-- [ ] Evals: count ratings that were too low vs too high
+- [x] Evals: count ratings that were too low vs too high
+- [ ] Evals: separate cases for related activity, with labels that account for it
 - [ ] Security dashboard design for the analyst screen
 - [ ] Infrastructure in Terraform (live on AWS)
 - [ ] Stretch: let the AI choose its own lookups (tool calling), compared against the fixed rules in evals
@@ -41,14 +42,18 @@ AI-assisted triage of AWS security logs. The service takes in CloudTrail events,
 
 `triage/eval_cases.json` holds 16 CloudTrail events, each hand-labeled with the severity a person would give it. `python -m triage.evals` runs the AI on all of them and scores the results. Every logged run is recorded in [`triage/EVAL_LOG.md`](triage/EVAL_LOG.md) with the model and a fingerprint of the prompt, so changes can be traced.
 
-Latest results (claude-haiku-4-5):
+Latest results (claude-haiku-4-5, October 17, 2026):
 
-| Setup                       | Exact match | Within one level |
-| --------------------------- | ----------- | ---------------- |
-| Event only                  | 13/16 (81%) | 15/16 (94%)      |
-| Event plus related activity | 8/16 (50%)  | 13/16 (81%)      |
+| Setup                       | Exact match | Within one level | Rated too low | Rated too high | Failed | Cost per 1,000 alerts | Avg time per alert |
+| --------------------------- | ----------- | ---------------- | ------------- | -------------- | ------ | --------------------- | ------------------ |
+| Event only                  | 12/16 (75%) | 15/16 (94%)      | 2             | 2              | 0      | $2.63                 | 4.1s               |
+| Event plus related activity | 8/16 (50%)  | 13/16 (81%)      | 0             | 8              | 0      | $3.18                 | 4.8s               |
 
-Adding related activity currently makes results worse. The cause hasn't been investigated yet. With only 16 cases, one case changes the score by about 6 points.
+**Rated too low** is the costly mistake in security: a real problem would sit lower in the queue than it should. **Rated too high** creates extra work but misses nothing.
+
+With related activity, every miss is rated too high. The likely cause is the eval set rather than the model: 7 of the 16 cases share one IP address and user within 24 hours, so in context mode routine events appear next to risky changes from the same source, and the model reasonably raises their severity. The labels were written judging each event on its own. A separate set of cases with deliberately designed related activity is planned.
+
+Cost comes from the token counts Claude reports for each call, at Claude Haiku 4.5's published prices. Scores vary from run to run: the same prompt scored 13/16 on October 12 and 12/16 on October 16 and 17. With only 16 cases, one case changes the score by about 6 points.
 
 ## Tech
 
