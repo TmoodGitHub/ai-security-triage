@@ -5,7 +5,6 @@ from triage import evals
 from triage.evals import distance, event_succeeded, related_from_cases, signed_gap
 from triage.triage import TriageResult
 
-
 def make_event(event_id, time, principal_id="AIDA1", ip="203.0.113.9", **extra):
     return {
         "eventID": event_id,
@@ -16,7 +15,6 @@ def make_event(event_id, time, principal_id="AIDA1", ip="203.0.113.9", **extra):
         **extra,
     }
 
-
 def test_distance_counts_levels_apart():
     assert distance("high", "high") == 0
     assert distance("low", "medium") == 1
@@ -26,7 +24,6 @@ def test_signed_gap_shows_direction():
     assert signed_gap("high", "high") == 0
     assert signed_gap("critical", "medium") == -2 # rated too low
     assert signed_gap("low", "medium") == 1 # rated too high
-
 
 def test_event_succeeded():
     assert event_succeeded(make_event("1", "2026-10-10T00:00:00Z"))
@@ -62,7 +59,7 @@ def test_run_evals_counts_too_low_too_high_and_failed(tmp_path, monkeypatch):
     ]
 
     cases = [
-        {"1": i, "expected": expected, "note": "", "event": make_event(str(i), "2026-10-10T00:00:00Z")}
+        {"id": i, "expected": expected, "note": "", "event": make_event(str(i), "2026-10-10T00:00:00Z")}
         for i, (expected, _) in enumerate(scenarios, start=1)
     ]
     cases_file = tmp_path / "cases.json"
@@ -78,8 +75,8 @@ def test_run_evals_counts_too_low_too_high_and_failed(tmp_path, monkeypatch):
             result = TriageResult(severity=severity, summary="s", reasoning="r", evidence=[], unknowns=[])
         return SimpleNamespace(
             parsed_output=result,
-            stop_reason="end_turn" if result else "max_token",
-            usage=SimpleNamespace(input_tokens=1000, output_token=100),
+            stop_reason="end_turn" if result else "max_tokens",
+            usage=SimpleNamespace(input_tokens=1000, output_tokens=100),
         )
 
     client = SimpleNamespace(messages=SimpleNamespace(parse=parse))
