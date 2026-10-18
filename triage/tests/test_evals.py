@@ -1,4 +1,9 @@
-from triage.evals import distance, event_succeeded, related_from_cases
+import json
+from types import SimpleNamespace
+
+from triage import evals
+from triage.evals import distance, event_succeeded, related_from_cases, signed_gap
+from triage.triage import TriageResult
 
 
 def make_event(event_id, time, principal_id="AIDA1", ip="203.0.113.9", **extra):
@@ -16,6 +21,11 @@ def test_distance_counts_levels_apart():
     assert distance("high", "high") == 0
     assert distance("low", "medium") == 1
     assert distance("critical", "low") == 3
+
+def test_signed_gap_shows_direction():
+    assert signed_gap("high", "high") == 0
+    assert signed_gap("critical", "medium") == -2 # rated too low
+    assert signed_gap("low", "medium") == 1 # rated too high
 
 
 def test_event_succeeded():
@@ -40,3 +50,46 @@ def test_related_from_cases_uses_identity_ip_and_24_hours():
 
     # The target itself, the 2-day-old event, and the unrelated event are left out.
     assert [r["link"] for r in related] == ["same identity", "same IP"]
+
+def test_run_evals_counts_too_low_too_high_and_failed(tmp_path, monkeypatch):
+    # each pair is (expected severity, faux model's answer) ("None" means no usable result)
+    scenarios = [
+        ("high", "high"),       # assessment matched
+        ("critical", "medium"), # AI assessed too low
+        ("high", "low"),        # AI assessed too low
+        ("low", "medium"),      # AI assessed too high
+        ("medium", None),       # failed assessment
+    ]
+
+    cases = [
+        {"1": i, "expected": expected, "note": "", "event": make_event(str(i), "2026-10-10T00:00:00Z")}
+        for i, (expected, _) in enumerate(scenarios, start=1)
+    ]
+    cases_file = tmp_path / "cases.json"
+    cases_file.write_text(json.dumps(cases))
+    monkeypatch.setattr(evals, "CASES_PATH", cases_file)
+
+    answers = iter(answer for _, answer in scenarios)
+
+    def parse(**kwargs):
+        severity = next(answers)
+        result = None
+        if severity is not None:
+            result = TriageResult(severity=severity, summary="s", reasoning="r", evidence=[], unknowns=[])
+        return SimpleNamespace(
+            parsed_output=result,
+            stop_reason="end_turn" if result else "max_token",
+            usage=SimpleNamespace(input_tokens=1000, output_token=100),
+        )
+
+    client = SimpleNamespace(messages=SimpleNamespace(parse=parse))
+
+    run = evals.run_evals(client, with_context=False)
+
+    assert run.exact == 1
+    assert run.too_low == 2
+    assert run.too_high == 1
+    assert run.failed == 1
+
+    # every case counts as exactly one of these four
+    assert run.exact + run.too_low + run.too_high + run.failed == run.total

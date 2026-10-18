@@ -14,9 +14,15 @@ LEVELS = ["low","medium","high","critical"]
 CASES_PATH = Path(__file__).parent / "eval_cases.json"
 LOG_PATH = Path(__file__).parent / "EVAL_LOG.md"
 
+def signed_gap(expected: str, actual: str) -> int:
+    """
+        Levels between the label and the AI's rating. Negative: rated too low. Positive: rated too high.
+    """
+    return LEVELS.index(actual) - LEVELS.index(expected)
+
 
 def distance(expected: str, actual: str) -> int:
-    return abs(LEVELS.index(expected) - LEVELS.index(actual))
+    return abs(signed_gap(expected, actual))
 
 
 def event_succeeded(event: dict) -> bool:
@@ -71,6 +77,8 @@ class EvalRun:
     total: int
     exact: int
     within_one: int
+    too_low: int
+    too_high: int
     failed: int
     avg_cost: float
     avg_seconds: float
@@ -79,6 +87,8 @@ def run_evals(client: anthropic.Anthropic, with_context: bool) -> EvalRun:
     cases = json.loads(CASES_PATH.read_text())
     exact = 0
     within_one = 0
+    too_low = 0
+    too_high = 0
     failed = 0
     calls = []
     misses = []
@@ -100,7 +110,13 @@ def run_evals(client: anthropic.Anthropic, with_context: bool) -> EvalRun:
         calls.append(call)
         result = call.result
 
-        gap = distance(case["expected"], result.severity)
+        off_by = signed_gap(case["expected"], result.severity)
+        if off_by < 0:
+            too_low += 1
+        elif off_by > 0:
+            too_high += 1
+        gap = abs(off_by)
+        direction = " (too low)" if off_by < 0 else " (too high)" if off_by > 0 else ""
 
         if gap == 0:
             exact += 1
@@ -115,14 +131,16 @@ def run_evals(client: anthropic.Anthropic, with_context: bool) -> EvalRun:
         if gap > 0:
             misses.append((case, result))
 
-        print(f"{case['id']:>3}  {name:<32} {case['expected']:<9} {result.severity:<9} {mark}")
+        print(f"{case['id']:>3}  {name:<32} {case['expected']:<9} {result.severity:<9} {mark}{direction}")
 
     total = len(cases)
     avg_cost = sum(c.cost for c in calls) / len(calls) if calls else 0.0
     avg_seconds = sum(c.seconds for c in calls) / len(calls) if calls else 0.0
 
-    print(f"\nExact match:      {exact}/{total} ({exact / total:.0%})")
+    print(f"\nExact match:    {exact}/{total} ({exact / total:.0%})")
     print(f"Within one level: {within_one}/{total} ({within_one / total:.0%})")
+    print(f"Rated too low:    {too_low}/{total}")
+    print(f"Rated too high:   {too_high}/{total}")
     print(f"Failed calls:     {failed}/{total}")
     print(f"Avg per alert:    ${avg_cost:.4f}, {avg_seconds:.1f}s")
     print(f"Per 1,000 alerts: ${avg_cost * 1000:.2f}")
@@ -130,11 +148,12 @@ def run_evals(client: anthropic.Anthropic, with_context: bool) -> EvalRun:
     if misses:
         print("\nDisagreements:")
         for case, result in misses:
-            print(f"\n#{case['id']} {case['event']['eventName']}: expected {case['expected']}, got {result.severity}")
-            print(f"  Your note: {case['note']}")
+            direction = "too low" if signed_gap(case["expected"], result.severity) < 0 else "too high"
+            print(f"\n#{case['id']} {case['event']['eventName']}: expected {case['expected']}, got {result.severity} ({direction})")
+            print(f"  Label note: {case['note']}")
             print(f"  Claude's reasoning: {result.reasoning}")
 
-    return EvalRun(total, exact, within_one, failed, avg_cost, avg_seconds)
+    return EvalRun(total, exact, within_one, too_low, too_high, failed, avg_cost, avg_seconds)
         
 
 
@@ -147,6 +166,8 @@ def append_to_log(run: EvalRun, note: str) -> None:
         f"| {datetime.now().strftime('%Y-%m-%d %H:%M')} | {MODEL} | `{prompt_fingerprint()}` "
         f"| {run.exact}/{run.total} ({run.exact / run.total:.0%}) "
         f"| {run.within_one}/{run.total} ({run.within_one / run.total:.0%}) "
+        f"| {run.too_low}/{run.total} "
+        f"| {run.too_high}/{run.total} "
         f"| {run.failed}/{run.total} "
         f"| ${run.avg_cost * 1000:.2f} "
         f"| {run.avg_seconds:.1f}s "
