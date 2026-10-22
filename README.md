@@ -19,7 +19,7 @@ AI-assisted triage of AWS security logs. The service takes in CloudTrail events,
 - [x] Build the analyst screen in CI
 - [x] Cost, time and failure rate per alert + Python tests
 - [x] Evals: count ratings that were too low vs too high
-- [ ] Evals: separate cases for related activity, with labels that account for it
+- [x] Evals: separate cases for related activity, with labels that account for it
 - [ ] Security dashboard design for the analyst screen
 - [ ] Infrastructure in Terraform (live on AWS)
 - [ ] Stretch: let the AI choose its own lookups (tool calling), compared against the fixed rules in evals
@@ -29,7 +29,7 @@ AI-assisted triage of AWS security logs. The service takes in CloudTrail events,
 1. **Security logs.** Sample AWS CloudTrail events, which record every action taken in an AWS account.
 2. **Take in and clean up.** Each event is converted to one standard format, and duplicates are removed.
 3. **Store.** Events are saved in a Postgres database.
-4. **AI triage.** For each event, the code pulls related activity (same user or same IP address within 24 hours) and sends it with the event to Claude. Claude returns a severity (low, medium, high or critical), a summary, its reasoning, the evidence it used, and what it couldn't tell. The result is saved as a finding.
+4. **AI triage.** For each event, the code pulls related activity (same user or same IP address within 24 hours), including what each action was done to, such as which bucket, policy or user. It sends this with the event to Claude. Claude returns a severity (low, medium, high or critical), a summary, its reasoning, the evidence it used, and what it couldn't tell. The result is saved as a finding.
 5. **Findings API.** Lists findings with filters, returns one finding with its original event, and records reviews. Every request needs a signed token.
 6. **Analyst screen.** A person filters the findings, reads the AI's reasoning and the raw event, and submits a review:
    - **Decision:** was the AI's severity right (approve) or wrong (reject)?
@@ -40,14 +40,25 @@ AI-assisted triage of AWS security logs. The service takes in CloudTrail events,
 
 ## Accuracy tests (evals)
 
-`triage/eval_cases.json` holds 16 CloudTrail events, each hand-labeled with the severity a person would give it. `python -m triage.evals` runs the AI on all of them and scores the results. Every logged run is recorded in [`triage/EVAL_LOG.md`](triage/EVAL_LOG.md) with the model and a fingerprint of the prompt, so changes can be traced.
+Two hand-labeled eval sets. `python -m triage.evals` runs the AI on one of them and scores the results. Every logged run is recorded in [`triage/EVAL_LOG.md`](triage/EVAL_LOG.md) with the model and a fingerprint of the prompt, so changes can be traced.
 
-Latest results (claude-haiku-4-5, October 17, 2026):
+- **`triage/eval_cases.json`:** 16 CloudTrail events, each labeled as a person would judge it on its own.
+- **`triage/eval_context_cases.json`:** 8 events with related activity designed for each one, labeled with that activity in mind. They come in pairs: the same kind of event with routine activity around it, and with suspicious activity around it. A pair tests whether the AI actually uses the context. Run with `--context-set`.
 
-| Setup                       | Exact match | Within one level | Rated too low | Rated too high | Failed | Cost per 1,000 alerts | Avg time per alert |
-| --------------------------- | ----------- | ---------------- | ------------- | -------------- | ------ | --------------------- | ------------------ |
-| Event only                  | 12/16 (75%) | 15/16 (94%)      | 2             | 2              | 0      | $2.63                 | 4.1s               |
-| Event plus related activity | 8/16 (50%)  | 13/16 (81%)      | 0             | 8              | 0      | $3.18                 | 4.8s               |
+Latest results (claude-haiku-4-5, October 2026):
+
+| Setup                                      | Exact match | Within one level | Rated too low | Rated too high | Failed | Cost per 1,000 alerts | Avg time per alert |
+| ------------------------------------------ | ----------- | ---------------- | ------------- | -------------- | ------ | --------------------- | ------------------ |
+| Event only (16 cases)                      | 12/16 (75%) | 15/16 (94%)      | 2             | 2              | 0      | $2.63                 | 4.1s               |
+| Context cases, designed activity (8 cases) | 7/8 (88%)   | 8/8 (100%)       | 0             | 1              | 0      | $2.97                 | 4.5s               |
+
+**Rated too low** is the costly mistake in security: a real problem would sit lower in the queue than it should. **Rated too high** creates extra work but misses nothing.
+
+On the context cases, the AI rated every routine/suspicious pair differently, in the right direction: it lowered routine activity, such as hourly CI deployments and test-bucket cleanup, and raised suspicious activity, such as self-granted admin rights after a login, password spraying, and bulk reads followed by stopping CloudTrail. The one miss was a single failed login, labeled low and rated medium.
+
+Running the 16 event-only cases with related activity drawn from each other scores much lower (5/16 exact, all misses rated too high). That set wasn't built for it: 7 of the 16 cases share one IP address and user within 24 hours, so routine events appear next to unrelated risky ones and the AI reasonably raises them. The context cases replace that comparison.
+
+Cost comes from the token counts Claude reports for each call, at Claude Haiku 4.5's published prices. Scores vary from run to run by about one case. With sets this small, one case changes the score by 6 points (16 cases) or 13 points (8 cases).
 
 **Rated too low** is the costly mistake in security: a real problem would sit lower in the queue than it should. **Rated too high** creates extra work but misses nothing.
 

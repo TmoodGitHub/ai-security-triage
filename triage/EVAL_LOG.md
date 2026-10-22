@@ -1,6 +1,6 @@
 # Eval log
 
-Eval set: hand-labeled CloudTrail events in `eval_cases.json`. New rows are added by `python -m triage.evals --log "what changed"`.
+Eval sets: hand-labeled CloudTrail events in `eval_cases.json` (16 cases, scored out of 16), and cases with designed related events in `eval_context_cases.json` (8 cases, tagged `[context set]`, scored out of 8). New rows are added by `python -m triage.evals --log "what changed"`.
 
 **Prompt** is a fingerprint of the system prompt: runs with the same value used the same prompt. Early runs were logged by hand, before fingerprints existed.
 
@@ -20,8 +20,8 @@ Eval set: hand-labeled CloudTrail events in `eval_cases.json`. New rows are adde
 | 2026-10-12 00:56 | claude-haiku-4-5 | `53fd66d8` | 8/16 (50%)  | 13/16 (81%) | —       | —        | —      | —                     | —                  | [with context] Prompt with related-events rules                                                                                       |
 | 2026-10-16 12:42 | claude-haiku-4-5 | `53fd66d8` | 12/16 (75%) | 15/16 (94%) | —       | —        | 0/16   | $2.61                 | 4.1s               | [no context] Added cost, time and failure tracking                                                                                    |
 | 2026-10-16 12:44 | claude-haiku-4-5 | `53fd66d8` | 8/16 (50%)  | 13/16 (81%) | —       | —        | 0/16   | $3.13                 | 4.7s               | [with context] Added cost, time and failure tracking                                                                                  |
-| 2026-10-17 22:34 | claude-haiku-4-5 | `53fd66d8` | 12/16 (75%) | 15/16 (94%) | 2/16 | 2/16 | 0/16 | $2.61 | 4.3s | [no context] Count too-low vs too-high misses |
-| 2026-10-17 22:45 | claude-haiku-4-5 | `53fd66d8` | 12/16 (75%) | 15/16 (94%) | 2/16 | 2/16 | 0/16 | $2.63 | 4.1s | [no context] Count too-low vs too-high misses |
-| 2026-10-17 22:47 | claude-haiku-4-5 | `53fd66d8` | 8/16 (50%) | 13/16 (81%) | 0/16 | 8/16 | 0/16 | $3.18 | 4.8s | [with context] Count too-low vs too-high misses |
-| 2026-10-21 22:29 | claude-haiku-4-5 | `53fd66d8` | 5/16 (31%) | 13/16 (81%) | 0/16 | 11/16 | 0/16 | $3.26 | 5.2s | [with context] Related events show what they acted on |
-| 2026-10-21 23:04 | claude-haiku-4-5 | `53fd66d8` | 7/8 (88%) | 8/8 (100%) | 0/8 | 1/8 | 0/8 | $2.97 | 4.5s | [context set] First run of context cases |
+| 2026-10-17 22:34 | claude-haiku-4-5 | `53fd66d8` | 12/16 (75%) | 15/16 (94%) | 2/16    | 2/16     | 0/16   | $2.61                 | 4.3s               | [no context] Count too-low vs too-high misses                                                                                         |
+| 2026-10-17 22:45 | claude-haiku-4-5 | `53fd66d8` | 12/16 (75%) | 15/16 (94%) | 2/16    | 2/16     | 0/16   | $2.63                 | 4.1s               | [no context] Count too-low vs too-high misses                                                                                         |
+| 2026-10-17 22:47 | claude-haiku-4-5 | `53fd66d8` | 8/16 (50%)  | 13/16 (81%) | 0/16    | 8/16     | 0/16   | $3.18                 | 4.8s               | [with context] Count too-low vs too-high misses                                                                                       |
+| 2026-10-21 22:29 | claude-haiku-4-5 | `53fd66d8` | 5/16 (31%)  | 13/16 (81%) | 0/16    | 11/16    | 0/16   | $3.26                 | 5.2s               | [with context] Related events show what they acted on                                                                                 |
+| 2026-10-21 23:04 | claude-haiku-4-5 | `53fd66d8` | 7/8 (88%)   | 8/8 (100%)  | 0/8     | 1/8      | 0/8    | $2.97                 | 4.5s               | [context set] First run of context cases                                                                                              |
