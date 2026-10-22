@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 from triage import evals
 from triage.evals import distance, event_succeeded, related_from_cases, signed_gap
-from triage.triage import TriageResult
+from triage.triage import TriageResult, format_related
 
 def make_event(event_id, time, principal_id="AIDA1", ip="203.0.113.9", **extra):
     return {
@@ -90,3 +90,40 @@ def test_run_evals_counts_too_low_too_high_and_failed(tmp_path, monkeypatch):
 
     # every case counts as exactly one of these four
     assert run.exact + run.too_low + run.too_high + run.failed == run.total
+
+
+def test_context_cases_are_well_formed():
+    cases = json.loads(evals.CONTEXT_CASES_PATH.read_text())
+    ids = [case["id"] for case in cases]
+
+    assert len(ids) == len(set(ids)), "case ids must be unique"
+    for case in cases:
+        assert case["expected"] in evals.LEVELS
+        assert case["note"]
+        assert case["event"]["eventName"]
+        format_related(case["related"]) # raises if a related event is missing a field
+
+
+def test_run_evals_context_set_sends_case_its_own_related_events():
+    prompts = []
+
+    def parse(**kwargs):
+        prompts.append(kwargs["messages"][0]["content"])
+        return SimpleNamespace(
+            parsed_output=TriageResult(severity="low", summary="s", reasoning="r", evidence=[], unknowns=[]),
+            stop_reason="end_turn",
+            usage=SimpleNamespace(input_tokens=1000, output_tokens=100),
+        )
+
+    client = SimpleNamespace(messages=SimpleNamespace(parse=parse))
+
+    run = evals.run_evals(client, context_set=True)
+
+    cases = json.loads(evals.CONTEXT_CASES_PATH.read_text())
+    assert run.total == len(cases)
+    for case, prompt in zip(cases, prompts):
+        if case["related"]:
+            for related in case["related"]:
+                assert related["event_name"] in prompt
+        else:
+            assert "Related events: none found." in prompt

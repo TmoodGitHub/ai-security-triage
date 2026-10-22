@@ -1,0 +1,647 @@
+[
+  {
+    "id": "A1",
+    "expected": "low",
+    "note": "Developer login followed only by routine reads during the workday.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEJDOE00001",
+        "arn": "arn:aws:iam::123456789012:user/jdoe",
+        "accountId": "123456789012",
+        "userName": "jdoe"
+      },
+      "eventTime": "2026-10-14T13:05:00Z",
+      "eventSource": "signin.amazonaws.com",
+      "eventName": "ConsoleLogin",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.10",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "requestParameters": null,
+      "responseElements": {
+        "ConsoleLogin": "Success"
+      },
+      "eventID": "ctx-A1",
+      "readOnly": false,
+      "eventType": "AwsConsoleSignIn",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012",
+      "additionalEventData": {
+        "MFAUsed": "Yes",
+        "LoginTo": "https://console.aws.amazon.com/console/home"
+      }
+    },
+    "related": [
+      {
+        "event_time": "2026-10-14T13:07:12Z",
+        "event_name": "ListBuckets",
+        "who": "jdoe",
+        "source_ip_address": "203.0.113.10",
+        "success": true,
+        "error_code": null,
+        "target": null,
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T13:10:45Z",
+        "event_name": "GetObject",
+        "who": "jdoe",
+        "source_ip_address": "203.0.113.10",
+        "success": true,
+        "error_code": null,
+        "target": "bucket team-docs",
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T14:30:03Z",
+        "event_name": "DescribeInstances",
+        "who": "jdoe",
+        "source_ip_address": "203.0.113.10",
+        "success": true,
+        "error_code": null,
+        "target": null,
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T16:45:20Z",
+        "event_name": "GetObject",
+        "who": "jdoe",
+        "source_ip_address": "203.0.113.10",
+        "success": true,
+        "error_code": null,
+        "target": "bucket team-docs",
+        "link": "same identity and IP"
+      }
+    ]
+  },
+  {
+    "id": "A2",
+    "expected": "high",
+    "note": "Same login, followed within minutes by self-granted admin and a new access key: escalation and persistence.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEJDOE00001",
+        "arn": "arn:aws:iam::123456789012:user/jdoe",
+        "accountId": "123456789012",
+        "userName": "jdoe"
+      },
+      "eventTime": "2026-10-14T13:05:00Z",
+      "eventSource": "signin.amazonaws.com",
+      "eventName": "ConsoleLogin",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.10",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "requestParameters": null,
+      "responseElements": {
+        "ConsoleLogin": "Success"
+      },
+      "eventID": "ctx-A2",
+      "readOnly": false,
+      "eventType": "AwsConsoleSignIn",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012",
+      "additionalEventData": {
+        "MFAUsed": "Yes",
+        "LoginTo": "https://console.aws.amazon.com/console/home"
+      }
+    },
+    "related": [
+      {
+        "event_time": "2026-10-14T13:08:02Z",
+        "event_name": "AttachUserPolicy",
+        "who": "jdoe",
+        "source_ip_address": "203.0.113.10",
+        "success": true,
+        "error_code": null,
+        "target": "policy AdministratorAccess, user jdoe",
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T13:09:15Z",
+        "event_name": "CreateAccessKey",
+        "who": "jdoe",
+        "source_ip_address": "203.0.113.10",
+        "success": true,
+        "error_code": null,
+        "target": "user jdoe",
+        "link": "same identity and IP"
+      }
+    ]
+  },
+  {
+    "id": "B1",
+    "expected": "low",
+    "note": "A single failed login with no other activity, most likely a mistyped password.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEASMITH001",
+        "arn": "arn:aws:iam::123456789012:user/asmith",
+        "accountId": "123456789012",
+        "userName": "asmith"
+      },
+      "eventTime": "2026-10-14T02:14:00Z",
+      "eventSource": "signin.amazonaws.com",
+      "eventName": "ConsoleLogin",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.61",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "requestParameters": null,
+      "responseElements": {
+        "ConsoleLogin": "Failure"
+      },
+      "eventID": "ctx-B1",
+      "readOnly": false,
+      "eventType": "AwsConsoleSignIn",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012",
+      "additionalEventData": {
+        "MFAUsed": "No",
+        "LoginTo": "https://console.aws.amazon.com/console/home"
+      },
+      "errorMessage": "Failed authentication"
+    },
+    "related": []
+  },
+  {
+    "id": "B2",
+    "expected": "high",
+    "note": "Same failed login, among many failures against several usernames from one IP in minutes: password spraying.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEASMITH001",
+        "arn": "arn:aws:iam::123456789012:user/asmith",
+        "accountId": "123456789012",
+        "userName": "asmith"
+      },
+      "eventTime": "2026-10-14T02:14:00Z",
+      "eventSource": "signin.amazonaws.com",
+      "eventName": "ConsoleLogin",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.61",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "requestParameters": null,
+      "responseElements": {
+        "ConsoleLogin": "Failure"
+      },
+      "eventID": "ctx-B2",
+      "readOnly": false,
+      "eventType": "AwsConsoleSignIn",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012",
+      "additionalEventData": {
+        "MFAUsed": "No",
+        "LoginTo": "https://console.aws.amazon.com/console/home"
+      },
+      "errorMessage": "Failed authentication"
+    },
+    "related": [
+      {
+        "event_time": "2026-10-14T02:10:05Z",
+        "event_name": "ConsoleLogin",
+        "who": "bwong",
+        "source_ip_address": "198.51.100.61",
+        "success": false,
+        "error_code": null,
+        "target": null,
+        "link": "same IP"
+      },
+      {
+        "event_time": "2026-10-14T02:10:41Z",
+        "event_name": "ConsoleLogin",
+        "who": "cdiaz",
+        "source_ip_address": "198.51.100.61",
+        "success": false,
+        "error_code": null,
+        "target": null,
+        "link": "same IP"
+      },
+      {
+        "event_time": "2026-10-14T02:11:30Z",
+        "event_name": "ConsoleLogin",
+        "who": "dlee",
+        "source_ip_address": "198.51.100.61",
+        "success": false,
+        "error_code": null,
+        "target": null,
+        "link": "same IP"
+      },
+      {
+        "event_time": "2026-10-14T02:12:02Z",
+        "event_name": "ConsoleLogin",
+        "who": "asmith",
+        "source_ip_address": "198.51.100.61",
+        "success": false,
+        "error_code": null,
+        "target": null,
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T02:12:48Z",
+        "event_name": "ConsoleLogin",
+        "who": "bwong",
+        "source_ip_address": "198.51.100.61",
+        "success": false,
+        "error_code": null,
+        "target": null,
+        "link": "same IP"
+      },
+      {
+        "event_time": "2026-10-14T02:13:20Z",
+        "event_name": "ConsoleLogin",
+        "who": "cdiaz",
+        "source_ip_address": "198.51.100.61",
+        "success": false,
+        "error_code": null,
+        "target": null,
+        "link": "same IP"
+      },
+      {
+        "event_time": "2026-10-14T02:15:10Z",
+        "event_name": "ConsoleLogin",
+        "who": "dlee",
+        "source_ip_address": "198.51.100.61",
+        "success": false,
+        "error_code": null,
+        "target": null,
+        "link": "same IP"
+      },
+      {
+        "event_time": "2026-10-14T02:15:52Z",
+        "event_name": "ConsoleLogin",
+        "who": "asmith",
+        "source_ip_address": "198.51.100.61",
+        "success": false,
+        "error_code": null,
+        "target": null,
+        "link": "same identity and IP"
+      }
+    ]
+  },
+  {
+    "id": "C1",
+    "expected": "low",
+    "note": "CI role checking its identity at the start of each hourly deployment, a repeating routine pattern.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "AROAEXAMPLECIDEPLOY1:gha-run",
+        "arn": "arn:aws:sts::123456789012:assumed-role/ci-deploy/gha-run",
+        "accountId": "123456789012",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "principalId": "AROAEXAMPLECIDEPLOY1",
+            "arn": "arn:aws:iam::123456789012:role/ci-deploy",
+            "accountId": "123456789012",
+            "userName": "ci-deploy"
+          }
+        }
+      },
+      "eventTime": "2026-10-14T15:00:02Z",
+      "eventSource": "sts.amazonaws.com",
+      "eventName": "GetCallerIdentity",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.30",
+      "userAgent": "aws-cli/2.17.0",
+      "requestParameters": null,
+      "responseElements": null,
+      "eventID": "ctx-C1",
+      "readOnly": true,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    },
+    "related": [
+      {
+        "event_time": "2026-10-14T12:00:02Z",
+        "event_name": "GetCallerIdentity",
+        "who": "ci-deploy",
+        "source_ip_address": "203.0.113.30",
+        "success": true,
+        "error_code": null,
+        "target": null,
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T12:00:40Z",
+        "event_name": "UpdateFunctionCode",
+        "who": "ci-deploy",
+        "source_ip_address": "203.0.113.30",
+        "success": true,
+        "error_code": null,
+        "target": "function orders-api",
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T13:00:02Z",
+        "event_name": "GetCallerIdentity",
+        "who": "ci-deploy",
+        "source_ip_address": "203.0.113.30",
+        "success": true,
+        "error_code": null,
+        "target": null,
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T13:00:40Z",
+        "event_name": "UpdateFunctionCode",
+        "who": "ci-deploy",
+        "source_ip_address": "203.0.113.30",
+        "success": true,
+        "error_code": null,
+        "target": "function orders-api",
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T14:00:02Z",
+        "event_name": "GetCallerIdentity",
+        "who": "ci-deploy",
+        "source_ip_address": "203.0.113.30",
+        "success": true,
+        "error_code": null,
+        "target": null,
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T14:00:40Z",
+        "event_name": "UpdateFunctionCode",
+        "who": "ci-deploy",
+        "source_ip_address": "203.0.113.30",
+        "success": true,
+        "error_code": null,
+        "target": "function orders-api",
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T15:00:39Z",
+        "event_name": "UpdateFunctionCode",
+        "who": "ci-deploy",
+        "source_ip_address": "203.0.113.30",
+        "success": true,
+        "error_code": null,
+        "target": "function orders-api",
+        "link": "same identity and IP"
+      }
+    ]
+  },
+  {
+    "id": "C2",
+    "expected": "high",
+    "note": "Backup service identity checking itself, then enumerating users and permissions with some calls denied: reconnaissance with a likely stolen key.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEBACKUP002",
+        "arn": "arn:aws:iam::123456789012:user/backup-svc",
+        "accountId": "123456789012",
+        "userName": "backup-svc"
+      },
+      "eventTime": "2026-10-14T03:12:00Z",
+      "eventSource": "sts.amazonaws.com",
+      "eventName": "GetCallerIdentity",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.77",
+      "userAgent": "aws-cli/2.17.0",
+      "requestParameters": null,
+      "responseElements": null,
+      "eventID": "ctx-C2",
+      "readOnly": true,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    },
+    "related": [
+      {
+        "event_time": "2026-10-14T03:12:20Z",
+        "event_name": "ListUsers",
+        "who": "backup-svc",
+        "source_ip_address": "198.51.100.77",
+        "success": true,
+        "error_code": null,
+        "target": null,
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T03:12:41Z",
+        "event_name": "ListAttachedUserPolicies",
+        "who": "backup-svc",
+        "source_ip_address": "198.51.100.77",
+        "success": false,
+        "error_code": "AccessDenied",
+        "target": "user admin",
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T03:13:05Z",
+        "event_name": "ListBuckets",
+        "who": "backup-svc",
+        "source_ip_address": "198.51.100.77",
+        "success": false,
+        "error_code": "AccessDenied",
+        "target": null,
+        "link": "same identity and IP"
+      }
+    ]
+  },
+  {
+    "id": "D1",
+    "expected": "low",
+    "note": "CI role deleting a test bucket as part of a repeating create-then-delete cycle: test cleanup.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "AROAEXAMPLECIDEPLOY1:gha-run",
+        "arn": "arn:aws:sts::123456789012:assumed-role/ci-deploy/gha-run",
+        "accountId": "123456789012",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "principalId": "AROAEXAMPLECIDEPLOY1",
+            "arn": "arn:aws:iam::123456789012:role/ci-deploy",
+            "accountId": "123456789012",
+            "userName": "ci-deploy"
+          }
+        }
+      },
+      "eventTime": "2026-10-14T16:20:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteBucket",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.30",
+      "userAgent": "aws-cli/2.17.0",
+      "requestParameters": {
+        "bucketName": "test-run-4821"
+      },
+      "responseElements": null,
+      "eventID": "ctx-D1",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    },
+    "related": [
+      {
+        "event_time": "2026-10-14T14:00:10Z",
+        "event_name": "CreateBucket",
+        "who": "ci-deploy",
+        "source_ip_address": "203.0.113.30",
+        "success": true,
+        "error_code": null,
+        "target": "bucket test-run-4819",
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T14:20:05Z",
+        "event_name": "DeleteBucket",
+        "who": "ci-deploy",
+        "source_ip_address": "203.0.113.30",
+        "success": true,
+        "error_code": null,
+        "target": "bucket test-run-4819",
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T15:00:12Z",
+        "event_name": "CreateBucket",
+        "who": "ci-deploy",
+        "source_ip_address": "203.0.113.30",
+        "success": true,
+        "error_code": null,
+        "target": "bucket test-run-4820",
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T15:20:03Z",
+        "event_name": "DeleteBucket",
+        "who": "ci-deploy",
+        "source_ip_address": "203.0.113.30",
+        "success": true,
+        "error_code": null,
+        "target": "bucket test-run-4820",
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T16:00:09Z",
+        "event_name": "CreateBucket",
+        "who": "ci-deploy",
+        "source_ip_address": "203.0.113.30",
+        "success": true,
+        "error_code": null,
+        "target": "bucket test-run-4821",
+        "link": "same identity and IP"
+      }
+    ]
+  },
+  {
+    "id": "D2",
+    "expected": "critical",
+    "note": "Developer deleting a customer data bucket after bulk reads from it and after stopping CloudTrail logging: exfiltration and cover-up.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEJDOE00001",
+        "arn": "arn:aws:iam::123456789012:user/jdoe",
+        "accountId": "123456789012",
+        "userName": "jdoe"
+      },
+      "eventTime": "2026-10-14T23:40:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteBucket",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.12",
+      "userAgent": "aws-cli/2.17.0",
+      "requestParameters": {
+        "bucketName": "customer-exports"
+      },
+      "responseElements": null,
+      "eventID": "ctx-D2",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    },
+    "related": [
+      {
+        "event_time": "2026-10-14T23:05:11Z",
+        "event_name": "GetObject",
+        "who": "jdoe",
+        "source_ip_address": "203.0.113.12",
+        "success": true,
+        "error_code": null,
+        "target": "bucket customer-exports",
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T23:07:40Z",
+        "event_name": "GetObject",
+        "who": "jdoe",
+        "source_ip_address": "203.0.113.12",
+        "success": true,
+        "error_code": null,
+        "target": "bucket customer-exports",
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T23:09:02Z",
+        "event_name": "GetObject",
+        "who": "jdoe",
+        "source_ip_address": "203.0.113.12",
+        "success": true,
+        "error_code": null,
+        "target": "bucket customer-exports",
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T23:12:33Z",
+        "event_name": "GetObject",
+        "who": "jdoe",
+        "source_ip_address": "203.0.113.12",
+        "success": true,
+        "error_code": null,
+        "target": "bucket customer-exports",
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T23:15:48Z",
+        "event_name": "GetObject",
+        "who": "jdoe",
+        "source_ip_address": "203.0.113.12",
+        "success": true,
+        "error_code": null,
+        "target": "bucket customer-exports",
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T23:19:20Z",
+        "event_name": "GetObject",
+        "who": "jdoe",
+        "source_ip_address": "203.0.113.12",
+        "success": true,
+        "error_code": null,
+        "target": "bucket customer-exports",
+        "link": "same identity and IP"
+      },
+      {
+        "event_time": "2026-10-14T23:32:10Z",
+        "event_name": "StopLogging",
+        "who": "jdoe",
+        "source_ip_address": "203.0.113.12",
+        "success": true,
+        "error_code": null,
+        "target": "trail management-events",
+        "link": "same identity and IP"
+      }
+    ]
+  }
+]

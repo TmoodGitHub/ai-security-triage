@@ -12,6 +12,7 @@ from triage.triage import MODEL, SYSTEM_PROMPT, TriageError, describe_target, tr
 
 LEVELS = ["low","medium","high","critical"]
 CASES_PATH = Path(__file__).parent / "eval_cases.json"
+CONTEXT_CASES_PATH = Path(__file__).parent / "eval_context_cases.json"
 LOG_PATH = Path(__file__).parent / "EVAL_LOG.md"
 
 def signed_gap(expected: str, actual: str) -> int:
@@ -84,8 +85,14 @@ class EvalRun:
     avg_cost: float
     avg_seconds: float
 
-def run_evals(client: anthropic.Anthropic, with_context: bool) -> EvalRun:
-    cases = json.loads(CASES_PATH.read_text())
+def run_evals(client: anthropic.Anthropic, with_context: bool = False, context_set: bool = False) -> EvalRun:
+    """
+    Score the model against labeled cases.
+
+    with_context: give each event its related events, found amoung the other cases.
+    context_set: use the context cases instead, each with its own designed related events.
+    """
+    cases = json.loads((CONTEXT_CASES_PATH if context_set else CASES_PATH).read_text())
     exact = 0
     within_one = 0
     too_low = 0
@@ -94,13 +101,23 @@ def run_evals(client: anthropic.Anthropic, with_context: bool) -> EvalRun:
     calls = []
     misses = []
 
-    mode = "with related events" if with_context else "without related events"
+    if context_set:
+        mode = "context set, with designed related events"
+    elif with_context:
+        mode = "with related events"
+    else:
+        mode = "without related events"
     print(f"Running {len(cases)} eval cases with {MODEL}, {mode}\n")
     print(f"{'#':>3}  {'event':<32} {'expected':<9} {'actual':<9} result")
 
     for case in cases:
         name = case["event"]["eventName"]
-        related = related_from_cases(case["event"], cases) if with_context else None
+        if context_set:
+            related = case["related"]
+        elif with_context:
+            related = related_from_cases(case["event"], cases)
+        else:
+            related = None
         try:
             call = triage_event(client, case["event"], related)
         except (anthropic.APIError, TriageError) as error:
@@ -180,14 +197,22 @@ def append_to_log(run: EvalRun, note: str) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the triage eval set.")
-    parser.add_argument("--log", metavar="NOTE", help="Add this run to EVAL_LOG.md, with NOTE describing what changed")
-    parser.add_argument("--context", action="store_true", help="Give each case its related events from the other cases")
+    parser.add_argument("--log", metavar="NOTE", help="Add this run to EVAL_LOG.md, with NOTE describing what chagned")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--context", action="store_true", help="Give each case its related events from teh other cases")
+    mode.add_argument("--context-set", action="store_true", help="Run the context cases, each with its own designed related events")
     args = parser.parse_args()
 
     load_dotenv()
-    run = run_evals(anthropic.Anthropic(), args.context)
+    run = run_evals(anthropic.Anthropic(), with_context=args.context, context_set=args.context_set)
 
     if args.log:
-        note = ("[with context] " if args.context else "[no context] ") + args.log
+        if args.context_set:
+            tag = "[context set] "
+        elif args.context:
+            tag = "[with context] "
+        else:
+            tag = "[no context] "
+        note = tag + args.log
         append_to_log(run, note)
         print(f"\nAdded to {LOG_PATH.name} (prompt {prompt_fingerprint()})")
