@@ -1,7 +1,7 @@
 import os
 import psycopg
 from psycopg.rows import dict_row
-from triage.triage import TriageResult
+from triage.triage import TriageResult, describe_target
 
 def connect() -> psycopg.Connection:
     return psycopg.connect(
@@ -44,7 +44,7 @@ def save_finding(conn: psycopg.Connection, event_id: str, result: TriageResult, 
 
 def fetch_related_events(conn: psycopg.Connection, event_id: str, limit: int = 20) -> list[dict]:
     cursor = conn.cursor(row_factory=dict_row)
-    return cursor.execute(
+    rows = cursor.execute(
         """
         WITH target AS (
             SELECT event_id, principal_id, source_ip_address, event_time
@@ -58,6 +58,7 @@ def fetch_related_events(conn: psycopg.Connection, event_id: str, limit: int = 2
             e.source_ip_address,
             e.success,
             e.error_code,
+            e.raw,
             CASE
                 WHEN e.principal_id = t.principal_id AND e.source_ip_address = t.source_ip_address THEN 'same identity and IP'
                 WHEN e.principal_id = t.principal_id THEN 'same identity'
@@ -72,3 +73,7 @@ def fetch_related_events(conn: psycopg.Connection, event_id: str, limit: int = 2
         """,
         {"event_id": event_id, "limit": limit},
     ).fetchall()
+
+    for row in rows:
+        row["target"] = describe_target(row.pop("raw"))
+    return rows

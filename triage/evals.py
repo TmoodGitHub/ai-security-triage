@@ -8,7 +8,7 @@ from pathlib import Path
 import anthropic
 from dotenv import load_dotenv
 
-from triage.triage import MODEL, SYSTEM_PROMPT, TriageError, triage_event
+from triage.triage import MODEL, SYSTEM_PROMPT, TriageError, describe_target, triage_event
 
 LEVELS = ["low","medium","high","critical"]
 CASES_PATH = Path(__file__).parent / "eval_cases.json"
@@ -66,6 +66,7 @@ def related_from_cases(target: dict, cases: list[dict], limit: int = 20) -> list
             "source_ip_address": e["sourceIPAddress"],
             "success": event_succeeded(e),
             "error_code": e.get("errorCode"),
+            "target": describe_target(e),
             "link": link
         })
 

@@ -67,6 +67,37 @@ class TriageCall:
             self.input_tokens * PRICE_PER_MILLION_INPUT + self.output_tokens * PRICE_PER_MILLION_OUTPUT
         ) / 1_000_000
 
+def describe_target(event: dict) -> str | None:
+    """
+        A short description of what a CloudTrail event acted on, for example "bucket customer-exports".
+    """
+    params = event.get("requestParameters")
+    if not isinstance(params, dict):
+        return None
+
+    principal = None
+    for key, kind in (("userName", "user"), ("roleName", "role"), ("groupName", "group")):
+        if params.get(key):
+            principal = f"{kind} {params[key]}"
+            break
+
+    if params.get("policyArn"):
+        policy = "policy " + params["policyArn"].rsplit("/", 1)[-1]
+        return f"{policy}, {principal}" if principal else policy
+    if principal:
+        return principal
+    if params.get("roleArn"):
+        return "role " + params["roleArn"].rsplit("/", 1)[-1]
+    if params.get("instanceType"):
+        count = params.get("maxCount") or params.get("minCount") or 1
+        return f"{count} x {params['instanceType']}"
+    if event.get("eventSource") == "cloudtrail.amazonaws.com" and params.get("name"):
+        return "trail " + params["name"].rsplit("/", 1)[-1]
+    for key, kind in (("bucketName", "bucket"), ("functionName", "function"), ("groupId", "security group"), ("detectorId", "detector")):
+        if params.get(key):
+            return f"{kind} {params[key]}"
+    return None
+
 def format_related(related: list[dict]) -> str:
     if not related:
         return "Related events: none found."
@@ -77,8 +108,9 @@ def format_related(related: list[dict]) -> str:
         if isinstance(time, datetime):
             time = time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         outcome = "succeeded" if r["success"] else f"failed ({r['error_code'] or 'no error code'})"
+        action = f"{r['event_name']} ({r['target']})" if r.get("target") else r["event_name"]
         lines.append(
-            f"- {time}  {r['event_name']} by {r['who']} from {r['source_ip_address']}, {outcome} [{r['link']}]"
+            f"- {time}  {action} by {r['who']} from {r['source_ip_address']}, {outcome} [{r['link']}]"
         )
     return "\n".join(lines)
 

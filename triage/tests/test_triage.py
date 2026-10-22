@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from triage.triage import TriageCall, TriageError, TriageResult, format_related, triage_event
+from triage.triage import TriageCall, TriageError, TriageResult, describe_target, format_related,  triage_event
 
 RESULT = TriageResult(severity="high", summary="s", reasoning="r", evidence=["e"], unknowns=[])
 
@@ -54,3 +54,28 @@ def test_format_related_shows_success_and_failure():
 
     assert "ConsoleLogin by jdoe from 203.0.113.9, failed (no error code) [same IP]" in text
     assert "CreateUser by jdoe from 203.0.113.9, succeeded [same identity and IP]" in text
+
+
+def test_describe_target_names_what_the_event_acted_on():
+    def event(params, source="iam.amazonaws.com"):
+        return {"eventSource": source, "requestParameters": params}
+
+    attach = {"userName": "jdoe", "policyArn": "arn:aws:iam:aws:policy/AdministratorAccess"}
+    trail = {"name": "arn:aws:cloudtrail:us-east-1:12345678012:trail/management-events"}
+
+    assert describe_target(event(attach)) == "policy AdministratorAccess, user jdoe"
+    assert describe_target(event({"userName": "support-admin"})) == "user support-admin"
+    assert describe_target(event({"bucketName": "customer-exports", "key": "a.csv"})) == "bucket customer-exports"
+    assert describe_target(event(trail, "cloudtrail.amazonaws.com")) == "trail management-events"
+    assert describe_target(event({"instanceType": "p4d.24xlarge", "maxCount": 20})) == "20 x p4d.24xlarge"
+    assert describe_target(event(None)) is None
+
+
+def test_format_related_shows_target_when_present():
+    related = [
+        {"event_time": "2026-10-14T13:08:02Z", "event_name": "AttachUserPolicy", "who": "jdoe",
+         "source_ip_address": "203.0.113.10", "success": True, "error_code": None,
+         "target": "policy AdministratorAccess, user jdoe", "link": "same identity and IP"},
+    ]
+
+    assert "AttachUserPolicy (policy AdministratorAccess, user jdoe)" in format_related(related)
