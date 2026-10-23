@@ -130,6 +130,52 @@ describe('GET /findings (needs the database running)', () => {
   });
 });
 
+describe('GET /findings/summary (needs the database running)', () => {
+  beforeEach(async () => {
+    await pool.query('TRUNCATE events, findings');
+    await saveEvents(events);
+  });
+
+  it('counts findings by review status and pending severity', async () => {
+    await addFinding('ListBuckets', 'low', 'approved');
+    await addFinding('ConsoleLogin', 'medium', 'rejected');
+    await addFinding('DeleteTrail', 'critical');
+    await addFinding('RunInstances', 'high');
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/findings/summary',
+      headers,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({
+      pending: 2,
+      approved: 1,
+      rejected: 1,
+      pendingBySeverity: {
+        critical: 1,
+        high: 1,
+        medium: 0,
+        low: 0,
+      },
+      agreementRate: 0.5,
+    });
+  });
+
+  it('reports no agreement rate before anything is reviewed', async () => {
+    await addFinding('DeleteTrail', 'critical');
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/findings/summary',
+      headers,
+    });
+
+    expect(response.json().agreementRate).toBeNull();
+  });
+});
+
 describe('GET /findings/:id (needs the database running', async () => {
   let findingId: string;
 

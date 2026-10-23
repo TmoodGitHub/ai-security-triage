@@ -69,6 +69,22 @@ const REVIEW_FINDING = `
         review_note AS "reviewNote"
 `;
 
+const FINDING_SUMMARY = `
+  SELECT
+    count(*) FILTER (WHERE review_status = 'pending')::int AS pending,
+    count(*) FILTER (WHERE review_status = 'approved')::int AS approved,
+    count(*) FILTER (WHERE review_status = 'rejected')::int AS rejected,
+    count(*) FILTER (WHERE review_status = 
+    'pending' AND severity = 'critical')::int AS "pendingCritical",
+    count(*) FILTER (WHERE review_status = 
+    'pending' AND severity = 'high')::int AS "pendingHigh",
+    count(*) FILTER (WHERE review_status = 
+    'pending' AND severity = 'medium')::int AS "pendingMedium",
+    count(*) FILTER (WHERE review_status = 
+    'pending' AND severity = 'low')::int AS "pendingLow"
+  FROM findings
+`;
+
 interface ReviewBody {
   decision: 'approved' | 'rejected';
   classification:
@@ -118,6 +134,26 @@ export function registerFindingsRoutes(
       return { findings: result.rows };
     },
   );
+
+  app.get('/findings/summary', async () => {
+    const result = await db.query(FINDING_SUMMARY);
+    const row = result.rows[0];
+    const reviewed = row.approved + row.rejected;
+
+    return {
+      pending: row.pending,
+      approved: row.approved,
+      rejected: row.rejected,
+      pendingBySeverity: {
+        critical: row.pendingCritical,
+        high: row.pendingHigh,
+        medium: row.pendingMedium,
+        low: row.pendingLow,
+      },
+      agreementRate:
+        reviewed === 0 ? null : row.approved / reviewed,
+    };
+  });
 
   app.get<{ Params: { id: number } }>(
     '/findings/:id',
