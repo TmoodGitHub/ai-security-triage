@@ -71,7 +71,11 @@ export default function FindingDetail({
 
   return (
     <section aria-labelledby='detail-heading'>
-      <button type='button' onClick={onBack}>
+      <button
+        type='button'
+        className='back-button'
+        onClick={onBack}
+      >
         &larr; Back to findings
       </button>
 
@@ -82,92 +86,106 @@ export default function FindingDetail({
 
       {finding && (
         <>
-          <h2
-            id='detail-heading'
-            ref={headingRef}
-            tabIndex={-1}
-          >
-            {finding.summary}
-          </h2>
-          <dl className='facts'>
-            <dt>Severity</dt>
-            <dd>
-              <span
-                className={`severity severity-${finding.severity}`}
-              >
-                {finding.severity}
-              </span>
-            </dd>
-            <dt>Status</dt>
-            <dd>{finding.reviewStatus}</dd>
-            <dt>Model</dt>
-            <dd>{finding.model}</dd>
-            <dt>Triaged</dt>
-            <dd>
-              {new Date(finding.createdAt).toLocaleString()}
-            </dd>
-          </dl>
+          <div className='panel'>
+            <h2
+              id='detail-heading'
+              ref={headingRef}
+              tabIndex={-1}
+            >
+              {finding.summary}
+            </h2>
+            <dl className='facts'>
+              <dt>Severity</dt>
+              <dd>
+                <span
+                  className={`severity severity-${finding.severity}`}
+                >
+                  {finding.severity}
+                </span>
+              </dd>
+              <dt>Status</dt>
+              <dd>
+                <span
+                  className={`status status-${finding.reviewStatus}`}
+                >
+                  {finding.reviewStatus}
+                </span>
+              </dd>
+              <dt>Model</dt>
+              <dd>{finding.model}</dd>
+              <dt>Triaged</dt>
+              <dd>
+                {new Date(
+                  finding.createdAt,
+                ).toLocaleString()}
+              </dd>
+            </dl>
+          </div>
 
-          <h3>Why the AI chose this severity</h3>
-          <p>{finding.reasoning}</p>
+          <div className='panel'>
+            <h3>Why the AI chose this severity</h3>
+            <p>{finding.reasoning}</p>
 
-          <h3>Evidence</h3>
-          <ul>
-            {finding.evidence.map((item, index) => (
-              <li key={index}>{item}</li>
-            ))}
-          </ul>
-
-          <h3>Unknowns</h3>
-          {finding.unknowns.length > 0 ? (
+            <h3>Evidence</h3>
             <ul>
-              {finding.unknowns.map((item, index) => (
+              {finding.evidence.map((item, index) => (
                 <li key={index}>{item}</li>
               ))}
             </ul>
-          ) : (
-            <p>None listed.</p>
-          )}
 
-          <h3 ref={reviewHeadingRef} tabIndex={-1}>
-            Review
-          </h3>
-          <p role='status'>{saved && 'Review saved.'}</p>
-          {finding.reviewStatus === 'pending' ? (
-            <ReviewForm
-              id={finding.id}
-              token={token}
-              onReviewed={handleReviewed}
-              onAuthError={onAuthError}
-            />
-          ) : (
-            <dl className='facts'>
-              <dt>Decision</dt>
-              <dd>{finding.reviewStatus}</dd>
-              <dt>Classification</dt>
-              <dd>
-                {finding.classification
-                  ? CLASSIFICATION_LABELS[
-                      finding.classification
-                    ]
-                  : '-'}
-              </dd>
-              <dt>Reviewed by</dt>
-              <dd>{finding.reviewedBy ?? '-'}</dd>
-              <dt>Reviewed at</dt>
-              <dd>
-                {finding.reviewedAt
-                  ? new Date(
-                      finding.reviewedAt,
-                    ).toLocaleString()
-                  : '-'}
-              </dd>
-              <dt>Note</dt>
-              <dd>{finding.reviewNote}</dd>
-            </dl>
-          )}
+            <h3>Unknowns</h3>
+            {finding.unknowns.length > 0 ? (
+              <ul>
+                {finding.unknowns.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>None listed.</p>
+            )}
+          </div>
 
-          <details>
+          <div className='panel'>
+            <h3 ref={reviewHeadingRef} tabIndex={-1}>
+              Review
+            </h3>
+            <p role='status'>{saved && 'Review saved.'}</p>
+            {finding.reviewStatus === 'pending' ? (
+              <ReviewForm
+                id={finding.id}
+                token={token}
+                onReviewed={handleReviewed}
+                onAuthError={onAuthError}
+              />
+            ) : (
+              <dl className='facts'>
+                <dt>Decision</dt>
+                <dd>{finding.reviewStatus}</dd>
+                <dt>Classification</dt>
+                <dd>
+                  {finding.classification
+                    ? CLASSIFICATION_LABELS[
+                        finding.classification
+                      ]
+                    : '-'}
+                </dd>
+                <dt>Reviewed by</dt>
+                <dd>{finding.reviewedBy ?? '-'}</dd>
+                <dt>Reviewed at</dt>
+                <dd>
+                  {finding.reviewedAt
+                    ? new Date(
+                        finding.reviewedAt,
+                      ).toLocaleString()
+                    : '-'}
+                </dd>
+                <dt>Note</dt>
+                <dd>{finding.reviewNote}</dd>
+              </dl>
+            )}
+          </div>
+
+          <details className='panel'>
             <summary>Raw CloudTrail event</summary>
             <pre>
               {JSON.stringify(finding.event, null, 2)}

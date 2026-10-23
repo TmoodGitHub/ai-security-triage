@@ -92,74 +92,84 @@ export default function FindingsList({
   }, [findings]);
 
   return (
-    <section aria-labelledby='findings-heading'>
-      <h2
-        id='findings-heading'
-        ref={headingRef}
-        tabIndex={-1}
-      >
-        Findings
-      </h2>
+    <section
+      className='panel'
+      aria-labelledby='findings-heading'
+    >
+      <div className='findings-toolbar'>
+        <h2
+          id='findings-heading'
+          ref={headingRef}
+          tabIndex={-1}
+        >
+          Findings
+        </h2>
 
-      <div className='filters'>
-        <label>
-          Severity
-          <select
-            value={severity}
-            onChange={(event) =>
-              onFilterChange({
-                ...filters,
-                severity: event.target.value as
-                  | Severity
-                  | '',
-              })
-            }
-          >
-            <option value=''>All</option>
-            <option value='critical'>Critical</option>
-            <option value='high'>High</option>
-            <option value='medium'>Medium</option>
-            <option value='low'>Low</option>
-          </select>
-        </label>
-        <label>
-          Status
-          <select
-            value={status}
-            onChange={(event) =>
-              onFilterChange({
-                ...filters,
-                status: event.target.value as
-                  | ReviewStatus
-                  | '',
-              })
-            }
-          >
-            <option value=''>All</option>
-            <option value='pending'>Pending</option>
-            <option value='approved'>Approved</option>
-            <option value='rejected'>Rejected</option>
-          </select>
-        </label>
+        <div className='filters'>
+          <label>
+            Severity
+            <select
+              value={severity}
+              onChange={(event) =>
+                onFilterChange({
+                  ...filters,
+                  severity: event.target.value as
+                    | Severity
+                    | '',
+                })
+              }
+            >
+              <option value=''>All</option>
+              <option value='critical'>Critical</option>
+              <option value='high'>High</option>
+              <option value='medium'>Medium</option>
+              <option value='low'>Low</option>
+            </select>
+          </label>
+          <label>
+            Status
+            <select
+              value={status}
+              onChange={(event) =>
+                onFilterChange({
+                  ...filters,
+                  status: event.target.value as
+                    | ReviewStatus
+                    | '',
+                })
+              }
+            >
+              <option value=''>All</option>
+              <option value='pending'>Pending</option>
+              <option value='approved'>Approved</option>
+              <option value='rejected'>Rejected</option>
+            </select>
+          </label>
+        </div>
+
+        <p className='findings-count' aria-live='polite'>
+          {error === null &&
+            findings === null &&
+            'Loading...'}
+          {findings !== null &&
+            `${findings.length} ${findings.length === 1 ? 'finding' : 'findings'}`}
+        </p>
       </div>
-
-      <p aria-live='polite'>
-        {error === null &&
-          findings === null &&
-          'Loading...'}
-        {findings !== null &&
-          `${findings.length} ${findings.length === 1 ? 'finding' : 'findings'}`}
-      </p>
       {error && <p role='alert'>{error}</p>}
+      {findings !== null && findings.length === 0 && (
+        <p className='empty'>
+          No findings match these filters.
+        </p>
+      )}
 
-      {findings !== null && findings.length > 0 && (
+      {findings != null && findings.length > 0 && (
         <div
           className='table-scroll'
           role='region'
           aria-label='Findings table'
           tabIndex={0}
         >
-          <table>
+          <table className='findings-table'>
             <thead>
               <tr>
                 <th scope='col'>Severity</th>
@@ -199,7 +209,13 @@ export default function FindingsList({
                       finding.eventTime,
                     ).toLocaleString()}
                   </td>
-                  <td>{finding.reviewStatus}</td>
+                  <td>
+                    <span
+                      className={`status status-${finding.reviewStatus}`}
+                    >
+                      {finding.reviewStatus}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>
