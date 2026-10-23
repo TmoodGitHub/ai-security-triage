@@ -7,6 +7,7 @@ import {
 import FindingDetail from './FindingDetail';
 import FindingsList from './FindingsList';
 import SignIn from './SignIn';
+import SummaryPanel from './SummaryPanel';
 
 const TOKEN_KEY = 'triage-token';
 
@@ -61,33 +62,45 @@ export default function App() {
   }
 
   return (
-    <main>
-      <header>
-        <h1>Security Findings</h1>
-        {user && (
-          <p>Signed in as {user.name ?? user.subject}</p>
-        )}
-        <button type='button' onClick={signOut}>
-          Sign out
-        </button>
+    <>
+      <header className='topbar'>
+        <div className='topbar-inner'>
+          <h1>Security findings</h1>
+          {user && (
+            <p>Signed in as {user.name ?? user.subject}</p>
+          )}
+          <button type='button' onClick={signOut}>
+            Sign out
+          </button>
+        </div>
       </header>
-      {selectedId === null ? (
-        <FindingsList
-          token={token}
-          filters={filters}
-          focusId={lastViewedId}
-          onFilterChange={setFilters}
-          onSelect={setSelectedId}
-          onAuthError={signOut}
-        />
-      ) : (
-        <FindingDetail
-          id={selectedId}
-          token={token}
-          onBack={closeFinding}
-          onAuthError={signOut}
-        />
-      )}
-    </main>
+      <main>
+        {selectedId === null ? (
+          <>
+            <SummaryPanel
+              token={token}
+              filters={filters}
+              onFilterChange={setFilters}
+              onAuthError={signOut}
+            />
+            <FindingsList
+              token={token}
+              filters={filters}
+              focusId={lastViewedId}
+              onFilterChange={setFilters}
+              onSelect={setSelectedId}
+              onAuthError={signOut}
+            />
+          </>
+        ) : (
+          <FindingDetail
+            id={selectedId}
+            token={token}
+            onBack={closeFinding}
+            onAuthError={signOut}
+          />
+        )}
+      </main>
+    </>
   );
 }

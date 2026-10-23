@@ -94,3 +94,11 @@ export type ReviewResult = Pick<
   | 'reviewedBy'
   | 'reviewNote'
 >;
+
+export interface FindingsSummary {
+  pending: number;
+  approved: number;
+  rejected: number;
+  pendingBySeverity: Record<Severity, number>;
+  agreementRate: number | null;
+}
