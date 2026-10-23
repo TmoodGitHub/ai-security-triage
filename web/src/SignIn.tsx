@@ -42,27 +42,47 @@ export default function SignIn({ onSignIn }: SignInProps) {
   }
 
   return (
-    <main>
-      <h1>Security Findings</h1>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor='token'>Access token</label>
-        <p id='token-help'>
-          Create one with: npm run token -- your-id "Your
-          Name"
-        </p>
-        <textarea
-          id='token'
-          rows={4}
-          value={token}
-          onChange={(event) => setToken(event.target.value)}
-          aria-describedby='token-help'
-          required
-        />
-        {error && <p role='alert'>{error}</p>}
-        <button type='submit' disabled={checking}>
-          {checking ? 'Checking...' : 'Sign In'}
-        </button>
-      </form>
-    </main>
+    <>
+      <header className='topbar'>
+        <div className='topbar-inner'>
+          <h1>Security findings</h1>
+        </div>
+      </header>
+      <main>
+        <section
+          className='panel sign-in'
+          aria-labelledby='sign-in-heading'
+        >
+          <h2 id='sign-in-heading'>Sign in</h2>
+          <form onSubmit={handleSubmit}>
+            <label htmlFor='token'>Access token</label>
+            <textarea
+              id='token'
+              rows={4}
+              value={token}
+              onChange={(event) =>
+                setToken(event.target.value)
+              }
+              aria-describedby='token-help'
+              required
+            />
+            <p id='token-help' className='hint'>
+              Create one with{' '}
+              <code>
+                npm run token -- your-id "Your Name"
+              </code>
+            </p>
+            {error && <p role='alert'>{error}</p>}
+            <button
+              type='submit'
+              className='button-primary'
+              disabled={checking}
+            >
+              {checking ? 'Checking...' : 'Sign in'}
+            </button>
+          </form>
+        </section>
+      </main>
+    </>
   );
 }

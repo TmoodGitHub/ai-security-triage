@@ -473,6 +473,59 @@ pre {
   align-self: flex-start;
 }
 
+/* ---------- Sign in ---------- */
+.sign-in {
+  max-width: 28rem;
+  margin: 3rem auto 0;
+  padding: 1.5rem;
+}
+
+.sign-in form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sign-in label {
+  font-weight: 600;
+}
+
+.sign-in textarea {
+  resize: vertical;
+}
+
+.sign-in button {
+  align-self: flex-start;
+  margin-top: 0.5rem;
+}
+
+.hint {
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+}
+
+.panel .hint {
+  margin: 0;
+}
+
+code {
+  font-family:
+    ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.875em;
+  background: var(--paper);
+  padding: 0.1em 0.3em;
+  border-radius: 0.2rem;
+}
+
+p[role='alert'] {
+  color: var(--critical);
+  font-weight: 600;
+}
+
+.panel p[role='alert'] {
+  margin: 0;
+}
+
 /* ---------- Focus ---------- */
 :focus-visible {
   outline: 3px solid var(--accent);
