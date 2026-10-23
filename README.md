@@ -22,7 +22,7 @@ AI-assisted triage of AWS security logs. The service takes in CloudTrail events,
 - [x] Cost, time and failure rate per alert + Python tests
 - [x] Evals: count ratings that were too low vs too high
 - [x] Evals: separate cases for related activity, with labels that account for it
-- [ ] Security dashboard design for the analyst screen
+- [x] Security dashboard design for the analyst screen
 - [ ] Infrastructure in Terraform (live on AWS)
 - [ ] Stretch: let the AI choose its own lookups (tool calling), compared against the fixed rules in evals
 
