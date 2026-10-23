@@ -4,6 +4,8 @@
 
 AI-assisted triage of AWS security logs. The service takes in CloudTrail events, cleans them into one standard format, and uses a large language model (LLM) to suggest how serious each one is and why. A person reviews every suggestion before anything is acted on, and records whether the AI got it right.
 
+![Analyst dashboard: findings awaiting review by severity, the AI agreement rate, and the findings list](docs/dashboard.png)
+
 ## Status
 
 **In progress.** Next: measuring cost and time per alert.
@@ -31,7 +33,7 @@ AI-assisted triage of AWS security logs. The service takes in CloudTrail events,
 3. **Store.** Events are saved in a Postgres database.
 4. **AI triage.** For each event, the code pulls related activity (same user or same IP address within 24 hours), including what each action was done to, such as which bucket, policy or user. It sends this with the event to Claude. Claude returns a severity (low, medium, high or critical), a summary, its reasoning, the evidence it used, and what it couldn't tell. The result is saved as a finding.
 5. **Findings API.** Lists findings with filters, returns one finding with its original event, and records reviews. Every request needs a signed token.
-6. **Analyst screen.** A person filters the findings, reads the AI's reasoning and the raw event, and submits a review:
+6. **Analyst screen.** A dashboard shows how many findings await review at each severity, and the AI agreement rate: the share of reviewed findings where the analyst approved the AI's severity. A person filters the findings, reads the AI's reasoning and the raw event, and submits a review:
    - **Decision:** was the AI's severity right (approve) or wrong (reject)?
    - **Classification:** what was the activity: a real threat (true positive), real but expected (benign positive), or a wrong finding (false positive)?
    - **Note:** required, explaining the call.
