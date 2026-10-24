@@ -8,7 +8,7 @@ AI-assisted triage of AWS security logs. The service takes in CloudTrail events,
 
 ## Status
 
-**In progress.** Next: measuring cost and time per alert.
+**In progress.** Next: deploying to AWS with Terraform (started: remote state in S3 and a monthly budget alert).
 
 - [x] Sample CloudTrail data
 - [x] TypeScript project setup
@@ -62,12 +62,6 @@ Running the 16 event-only cases with related activity drawn from each other scor
 
 Cost comes from the token counts Claude reports for each call, at Claude Haiku 4.5's published prices. Scores vary from run to run by about one case. With sets this small, one case changes the score by 6 points (16 cases) or 13 points (8 cases).
 
-**Rated too low** is the costly mistake in security: a real problem would sit lower in the queue than it should. **Rated too high** creates extra work but misses nothing.
-
-With related activity, every miss is rated too high. The likely cause is the eval set rather than the model: 7 of the 16 cases share one IP address and user within 24 hours, so in context mode routine events appear next to risky changes from the same source, and the model reasonably raises their severity. The labels were written judging each event on its own. A separate set of cases with deliberately designed related activity is planned.
-
-Cost comes from the token counts Claude reports for each call, at Claude Haiku 4.5's published prices. Scores vary from run to run: the same prompt scored 13/16 on October 12 and 12/16 on October 16 and 17. With only 16 cases, one case changes the score by about 6 points.
-
 ## Tech
 
 - **TypeScript and Node.js** for log intake and the Findings API (Fastify)
@@ -78,7 +72,7 @@ Cost comes from the token counts Claude reports for each call, at Claude Haiku 4
 - **JWT** (jose) for API sign-in tokens
 - **Vitest** for TypeScript tests, including database tests against a separate test database
 - **GitHub Actions** to run the tests on every push
-- **AWS** (Lambda, SQS, S3) and **Terraform** for hosting (planned)
+- **Terraform** for AWS infrastructure (in progress: remote state in S3 and a budget alert); hosting on AWS (Lambda, SQS, S3) is planned
 
 ## Project layout
 
@@ -92,7 +86,7 @@ db/migrations/   Database tables, applied in number order
 triage/          AI triage step, evals and eval log (Python)
 web/             Analyst screen (React)
 tests/           TypeScript tests (tests/integration/ needs the database)
-infra/           Terraform files (coming)
+infra/           Terraform files (in progress)
 ```
 
 ## Running it locally
