@@ -1,5 +1,5 @@
 import { buildApp } from './app.js';
-import { pool } from '../db/client.js';
+import { db } from '../db/client.js';
 import { createVerifier } from '../auth/tokens.js';
 
 const secret = process.env.JWT_SECRET;
@@ -12,7 +12,7 @@ if (secret === undefined || secret.length < 32) {
 
 const port = Number(process.env.API_PORT ?? 3000);
 const app = buildApp({
-  db: pool,
+  db,
   verify: createVerifier(secret),
 });
 

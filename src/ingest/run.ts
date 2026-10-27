@@ -3,7 +3,7 @@ import {
   ingestCloudTrail,
 } from './ingest.js';
 import { saveEvents } from '../db/events.js';
-import { pool } from '../db/client.js';
+import { db } from '../db/client.js';
 
 const path = process.argv[2];
 
@@ -25,7 +25,7 @@ console.log(
   `Saved ${inserted} new events (${events.length - inserted} were already in the database)`,
 );
 
-await pool.end();
+await db.end();
 
 // To print events, uncomment below:
 // for (const event of events) {

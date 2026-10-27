@@ -9,7 +9,7 @@ import {
 } from 'vitest';
 import { ingestCloudTrail } from '../../src/ingest/ingest.js';
 import { saveEvents } from '../../src/db/events.js';
-import { pool } from '../../src/db/client.js';
+import { db, pool } from '../../src/db/client.js';
 import { buildApp } from '../../src/api/app.js';
 import { authHeaders, verify } from '../helpers.js';
 
@@ -20,7 +20,7 @@ const samplePath = new URL(
 const events = ingestCloudTrail(
   readFileSync(samplePath, 'utf-8'),
 );
-const app = buildApp({ db: pool, verify, logger: false });
+const app = buildApp({ db, verify, logger: false });
 let headers: { authorization: string };
 
 async function addFinding(

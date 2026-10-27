@@ -1,4 +1,4 @@
-import { pool } from './client.js';
+import { db } from './client.js';
 import type { NormalizedEvent } from '../ingest/types.js';
 
 const INSERT_EVENT = `
@@ -11,14 +11,10 @@ const INSERT_EVENT = `
 export async function saveEvents(
   events: NormalizedEvent[],
 ): Promise<number> {
-  const client = await pool.connect();
-  let inserted = 0;
-
-  try {
-    await client.query('BEGIN');
-
+  return db.transaction(async (tx) => {
+    let inserted = 0;
     for (const event of events) {
-      const result = await client.query(INSERT_EVENT, [
+      const result = await tx.query(INSERT_EVENT, [
         event.eventID,
         event.eventTime,
         event.eventSource,
@@ -38,15 +34,8 @@ export async function saveEvents(
         event.errorMessage,
         JSON.stringify(event.raw),
       ]);
-      inserted += result.rowCount ?? 0;
+      inserted += result.rowCount;
     }
-
-    await client.query('COMMIT');
     return inserted;
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
-  }
+  });
 }

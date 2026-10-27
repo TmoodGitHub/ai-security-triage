@@ -1,4 +1,5 @@
 import pg from 'pg';
+import { createPgDb } from './pg.js';
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -17,3 +18,5 @@ export const pool = new pg.Pool({
   password: requireEnv('POSTGRES_PASSWORD'),
   database: requireEnv('POSTGRES_DB'),
 });
+
+export const db = createPgDb(pool);

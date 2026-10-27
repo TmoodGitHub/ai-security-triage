@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import type { Pool } from 'pg';
+import type { Db } from '../db/types.js';
 
 const SEVERITIES = ['low', 'medium', 'high', 'critical'];
 const REVIEW_STATUSES = ['pending', 'approved', 'rejected'];
@@ -96,7 +96,7 @@ interface ReviewBody {
 
 export function registerFindingsRoutes(
   app: FastifyInstance,
-  db: Pool,
+  db: Db,
 ) {
   app.get<{ Querystring: ListFindingsQuery }>(
     '/findings',

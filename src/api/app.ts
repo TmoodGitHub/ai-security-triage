@@ -1,5 +1,5 @@
 import Fastify from 'fastify';
-import type { Pool } from 'pg';
+import type { Db } from '../db/types.js';
 import type { AuthUser, Verifier } from '../auth/tokens.js';
 import { registerFindingsRoutes } from './findings.js';
 import { request } from 'node:http';
@@ -17,7 +17,7 @@ export function buildApp({
   verify,
   logger = true,
 }: {
-  db: Pool;
+  db: Db;
   verify: Verifier;
   logger?: boolean;
 }) {

@@ -7,9 +7,10 @@ import {
   afterAll,
 } from 'vitest';
 import { buildApp } from '../src/api/app.js';
+import { createPgDb } from '../src/db/pg.js';
 import { authHeaders, verify } from './helpers.js';
 
-const db = new pg.Pool();
+const db = createPgDb(new pg.Pool());
 const app = buildApp({ db, verify, logger: false });
 let headers: { authorization: string };
 
