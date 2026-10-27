@@ -11,7 +11,8 @@
     "ingest": "tsc && node --env-file=.env dist/ingest/run.js",
     "db:check": "tsc && node --env-file=.env dist/db/check.js",
     "api": "tsc && node --env-file=.env dist/api/server.js",
-    "token": "tsc && node --env-file=.env dist/auth/make-token.js"
+    "token": "tsc && node --env-file=.env dist/auth/make-token.js",
+    "db:migrate:aws": "tsc && node --env-file=.env dist/db/migrate-aws.js"
   },
   "repository": {
     "type": "git",
@@ -31,6 +32,7 @@
     "vitest": "^5.0.2"
   },
   "dependencies": {
+    "@aws-sdk/client-rds-data": "^3.1157.0",
     "fastify": "^5.12.7",
     "jose": "^6.2.12",
     "pg": "^8.23.1"
