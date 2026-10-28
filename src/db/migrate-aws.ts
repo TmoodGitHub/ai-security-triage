@@ -4,7 +4,6 @@ import {
   ExecuteStatementCommand,
   RDSDataClient,
 } from '@aws-sdk/client-rds-data';
-import type { constants } from 'node:buffer';
 
 const MIGRATIONS_DIR = 'db/migrations';
 const RESUME_RETRY_MS = 5_000;
