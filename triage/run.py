@@ -1,26 +1,30 @@
 import argparse
+from contextlib import closing
 
 import anthropic
 from dotenv import load_dotenv
 
-from triage.db import connect, fetch_related_events, fetch_untriaged_events, save_finding
+from triage.db import fetch_related_events, fetch_untriaged_events, save_finding
+from triage.drivers import DRIVERS, connect
 from triage.triage import MODEL, TriageError, triage_event
 
 parser = argparse.ArgumentParser(description="Triage saved events that have no findings yet.")
 parser.add_argument("--limit", type=int, default=10, help="Maximum number of events to triage (default 10)")
+parser.add_argument("--db", choices=DRIVERS, help="Database drive (default: DB_DRIVER, or pg)")
+parser.add_argument("--database", help="Database name (default: from .env)")
 args = parser.parse_args()
 
 load_dotenv()
 client = anthropic.Anthropic()
 
-with connect() as conn:
-    events = fetch_untriaged_events(conn, args.limit)
+with closing(connect(args.db, args.database)) as db:
+    events = fetch_untriaged_events(db, args.limit)
     print(f"Found {len(events)} events to triage")
 
     calls = []
     failed = 0
     for event_id, raw in events:
-        related = fetch_related_events(conn, event_id)
+        related = fetch_related_events(db, event_id)
         try:
             call = triage_event(client, raw, related)
         except (anthropic.APIError, TriageError) as error:
@@ -28,8 +32,7 @@ with connect() as conn:
             print(f"  {raw['eventName']}: FAILED: {error}")
             continue
 
-        save_finding(conn, event_id, call.result, MODEL)
-        conn.commit()
+        save_finding(db, event_id, call.result, MODEL)
         calls.append(call)
         print(
             f"  {raw['eventName']}: {call.result.severity.upper()} "

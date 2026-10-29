@@ -10,6 +10,7 @@
     "test:db:data-api": "vitest run tests/integration --no-file-parallelism --mode data-api",
     "build": "tsc",
     "ingest": "tsc && node --env-file=.env dist/ingest/run.js",
+    "ingest:data-api": "tsc && node --env-file=.env --env-file=.env.data-api dist/ingest/run.js",
     "db:check": "tsc && node --env-file=.env dist/db/check.js",
     "api": "tsc && node --env-file=.env dist/api/server.js",
     "token": "tsc && node --env-file=.env dist/auth/make-token.js",

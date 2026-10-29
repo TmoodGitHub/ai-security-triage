@@ -1,50 +1,53 @@
-import os
-import psycopg
-from psycopg.rows import dict_row
+import json
+
+from triage.drivers import Db
 from triage.triage import TriageResult, describe_target
 
-def connect() -> psycopg.Connection:
-    return psycopg.connect(
-        host=os.environ['DB_HOST'],
-        port=os.environ['DB_PORT'],
-        user=os.environ['POSTGRES_USER'],
-        password=os.environ['POSTGRES_PASSWORD'],
-        dbname=os.environ['POSTGRES_DB'],
-    )
 
-
-def fetch_untriaged_events(conn: psycopg.Connection, limit: int) -> list[tuple[str, dict]]:
-    return conn.execute(
+def fetch_untriaged_events(db: Db, limit: int) -> list[tuple[str, dict]]:
+    rows = db.query(
         """
         SELECT e.event_id, e.raw
         FROM events e
         WHERE NOT EXISTS (SELECT 1 FROM findings f WHERE f.event_id = e.event_id)
         ORDER BY e.event_time
-        LIMIT %s
+        LIMIT %(limit)s
         """,
-        (limit,),
-    ).fetchall()
+        {"limit": limit},
+    )
+    return [(row["event_id"], row["raw"]) for row in rows]
 
 
-def save_finding(conn: psycopg.Connection, event_id: str, result: TriageResult, model: str) -> None:
-    conn.execute(
+def save_finding(db: Db, event_id: str, result: TriageResult, model: str) -> None:
+    # evidence and unknowns are sent as JSON and unpacked into TEXT[] in SQL,
+    # because the Data API does not accept array parameters.
+    db.execute(
         """
-        INSERT INTO findings (event_id, severity, summary, reasoning, evidence, unknowns, model) VALUES (%s,%s,%s,%s,%s,%s,%s)
-        """,
-        (
-            event_id,
-            result.severity,
-            result.summary,
-            result.reasoning,
-            result.evidence,
-            result.unknowns,
-            model
+        INSERT INTO findings (event_id, severity, summary, reasoning, evidence, unknowns, model)
+        VALUES (
+            %(event_id)s,
+            %(severity)s,
+            %(summary)s,
+            %(reasoning)s,
+            ARRAY(SELECT jsonb_array_elements_text(%(evidence)s::jsonb)),
+            ARRAY(SELECT jsonb_array_elements_text(%(unknowns)s::jsonb)),
+            %(model)s
         )
+        """,
+        {
+            "event_id": event_id,
+            "severity": result.severity,
+            "summary": result.summary,
+            "reasoning": result.reasoning,
+            "evidence": json.dumps(result.evidence),
+            "unknowns": json.dumps(result.unknowns),
+            "model": model,
+        },
     )
 
-def fetch_related_events(conn: psycopg.Connection, event_id: str, limit: int = 20) -> list[dict]:
-    cursor = conn.cursor(row_factory=dict_row)
-    rows = cursor.execute(
+
+def fetch_related_events(db: Db, event_id: str, limit: int = 20) -> list[dict]:
+    rows = db.query(
         """
         WITH target AS (
             SELECT event_id, principal_id, source_ip_address, event_time
@@ -72,7 +75,7 @@ def fetch_related_events(conn: psycopg.Connection, event_id: str, limit: int = 2
         LIMIT %(limit)s
         """,
         {"event_id": event_id, "limit": limit},
-    ).fetchall()
+    )
 
     for row in rows:
         row["target"] = describe_target(row.pop("raw"))
