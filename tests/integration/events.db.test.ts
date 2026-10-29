@@ -9,7 +9,7 @@ import {
 } from 'vitest';
 import { ingestCloudTrail } from '../../src/ingest/ingest.js';
 import { saveEvents } from '../../src/db/events.js';
-import { pool } from '../../src/db/client.js';
+import { databaseName, db } from '../../src/db/client.js';
 
 const samplePath = new URL(
   '../../samples/cloudtrail_sample.json',
@@ -20,7 +20,7 @@ const events = ingestCloudTrail(
 );
 
 async function countRows(): Promise<number> {
-  const result = await pool.query<{ count: string }>(
+  const result = await db.query<{ count: string }>(
     'SELECT COUNT(*) AS count FROM events',
   );
   return Number(result.rows[0]?.count);
@@ -28,7 +28,7 @@ async function countRows(): Promise<number> {
 
 describe('saveEvents (needs the database running)', () => {
   beforeAll(() => {
-    if (!process.env.POSTGRES_DB?.endsWith('_test')) {
+    if (!databaseName()?.endsWith('_test')) {
       throw new Error(
         'Refusing to run: these tests delete data and must use a *_test database',
       );
@@ -36,11 +36,11 @@ describe('saveEvents (needs the database running)', () => {
   });
 
   beforeEach(async () => {
-    await pool.query('TRUNCATE events, findings');
+    await db.query('TRUNCATE events, findings');
   });
 
   afterAll(async () => {
-    await pool.end();
+    await db.end();
   });
 
   it('saves every event', async () => {
@@ -61,7 +61,7 @@ describe('saveEvents (needs the database running)', () => {
   it('stores the values in the right columns', async () => {
     await saveEvents(events);
 
-    const result = await pool.query(
+    const result = await db.query(
       "SELECT user_name, user_arn, success, source_ip_address, raw->>'eventName' AS raw_event_name FROM events WHERE event_name = 'ConsoleLogin'",
     );
 

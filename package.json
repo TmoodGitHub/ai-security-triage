@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "test": "vitest run --exclude \"tests/integration/**\"",
-    "test:db": "vitest run tests/integration",
+    "test:db:pg": "vitest run tests/integration --no-file-parallelism",
+    "test:db:data-api": "vitest run tests/integration --no-file-parallelism --mode data-api",
     "build": "tsc",
     "ingest": "tsc && node --env-file=.env dist/ingest/run.js",
     "db:check": "tsc && node --env-file=.env dist/db/check.js",

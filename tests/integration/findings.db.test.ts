@@ -9,7 +9,7 @@ import {
 } from 'vitest';
 import { ingestCloudTrail } from '../../src/ingest/ingest.js';
 import { saveEvents } from '../../src/db/events.js';
-import { db, pool } from '../../src/db/client.js';
+import { databaseName, db } from '../../src/db/client.js';
 import { buildApp } from '../../src/api/app.js';
 import { authHeaders, verify } from '../helpers.js';
 
@@ -28,7 +28,7 @@ async function addFinding(
   severity: string,
   reviewStatus = 'pending',
 ): Promise<string> {
-  const result = await pool.query<{ id: string }>(
+  const result = await db.query<{ id: string }>(
     `
       INSERT INTO findings (event_id, severity, summary, reasoning, evidence, unknowns, model, review_status)
       SELECT event_id, $2, 'summary', 'reasoning', ARRAY['evidence one'], ARRAY['unknown one'], 'test-model', $3
@@ -46,7 +46,7 @@ async function addFinding(
 
 beforeAll(async () => {
   headers = await authHeaders('analyst-1');
-  if (!process.env.POSTGRES_DB?.endsWith('_test')) {
+  if (!databaseName()?.endsWith('_test')) {
     throw new Error(
       'Refusing to run: these tests delete data and must use a *_test database',
     );
@@ -55,12 +55,12 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await app.close();
-  await pool.end();
+  await db.end();
 });
 
 describe('GET /findings (needs the database running)', () => {
   beforeEach(async () => {
-    await pool.query('TRUNCATE events, findings');
+    await db.query('TRUNCATE events, findings');
     await saveEvents(events);
     await addFinding('ListBuckets', 'low', 'approved');
     await addFinding('ConsoleLogin', 'medium');
@@ -132,7 +132,7 @@ describe('GET /findings (needs the database running)', () => {
 
 describe('GET /findings/summary (needs the database running)', () => {
   beforeEach(async () => {
-    await pool.query('TRUNCATE events, findings');
+    await db.query('TRUNCATE events, findings');
     await saveEvents(events);
   });
 
@@ -180,7 +180,7 @@ describe('GET /findings/:id (needs the database running', async () => {
   let findingId: string;
 
   beforeEach(async () => {
-    await pool.query('TRUNCATE events, findings');
+    await db.query('TRUNCATE events, findings');
     await saveEvents(events);
     findingId = await addFinding('DeleteTrail', 'critical');
   });
@@ -225,7 +225,7 @@ describe('POST /findings/:id/review (needs the database running', () => {
   let findingId: string;
 
   beforeEach(async () => {
-    await pool.query('TRUNCATE events, findings');
+    await db.query('TRUNCATE events, findings');
     await saveEvents(events);
     findingId = await addFinding('DeleteTrail', 'critical');
   });

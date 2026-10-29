@@ -49,7 +49,7 @@ jobs:
       - run: npm ci
       - name: Create tables
         run: for f in db/migrations/*.sql; do psql -h localhost -U triage -d triage_test -v ON_ERROR_STOP=1 -f "$f"; done
-      - run: npm run test:db
+      - run: npm run test:db:pg
 
   web:
     runs-on: ubuntu-latest

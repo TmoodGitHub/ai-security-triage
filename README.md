@@ -143,8 +143,9 @@ npm run token -- analyst-1 "Your Name"
 **Tests**
 
 ```bash
-npm test              # unit tests
-npm run test:db       # database tests (needs the database running)
+npm test                # unit tests
+npm run test:db:pg      # database tests against local Postgres (needs Docker running)
+npm run test:data-api   # the same tests against Aurora (needs aws sso login)
 python -m triage.evals
 ```
 

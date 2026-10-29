@@ -5,7 +5,7 @@ const INSERT_EVENT = `
     INSERT INTO events (
         event_id, event_time, event_source, event_name, event_type, aws_region, source_ip_address, caller_account_id, target_account_id, principal_id, user_agent, user_type, user_name, user_arn, success, error_code, error_message, raw
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) ON CONFLICT (event_id) DO NOTHING
+    VALUES ($1, $2::timestamptz, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18::jsonb) ON CONFLICT (event_id) DO NOTHING
 `;
 
 export async function saveEvents(
