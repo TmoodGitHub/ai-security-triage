@@ -40,6 +40,18 @@ resource "aws_cloudfront_distribution" "web" {
         origin_access_control_id = aws_cloudfront_origin_access_control.web.id 
     }
 
+    origin {
+        origin_id   = "api"
+        domain_name = replace(aws_apigatewayv2_api.api.api_endpoint, "https://", "")
+
+        custom_origin_config {
+            http_port              = 80
+            https_port             = 443
+            origin_protocol_policy = "https-only"
+            origin_ssl_protocols   = ["TLSv1.2"]
+        }
+    }
+
     default_cache_behavior {
         target_origin_id            = "web-bucket"
         viewer_protocol_policy      = "redirect-to-https"
@@ -48,6 +60,17 @@ resource "aws_cloudfront_distribution" "web" {
         compress                    = true
         cache_policy_id             = data.aws_cloudfront_cache_policy.caching_optimized.id
         response_headers_policy_id  = data.aws_cloudfront_response_headers_policy.security_headers.id
+    }
+
+    ordered_cache_behavior {
+        path_pattern             = "/api/*"
+        target_origin_id         = "api"
+        viewer_protocol_policy   = "https-only"
+        allowed_methods          = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+        cached_methods           = ["GET", "HEAD"]
+        compress                 = true
+        cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled.id
+        origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_except_host.id
     }
 
     restrictions {

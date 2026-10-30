@@ -1,1 +1,2 @@
 alert_email = "you@example.com"
+jwt_secret = "same-value-as-JWT_SECRET-in-.env"

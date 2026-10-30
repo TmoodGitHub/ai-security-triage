@@ -20,3 +20,8 @@ output "db_cluster_arn" {
 output "db_secret_arn" {
     value = aws_rds_cluster.db.master_user_secret[0].secret_arn
 }
+
+output "api_endpoint" {
+    description = "API Gateway URL; the dashboard reaches it through CloudFront at /api"
+    value       = aws_apigatewayv2_api.api.api_endpoint
+}
