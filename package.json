@@ -9,6 +9,7 @@
     "test:db:pg": "vitest run tests/integration --no-file-parallelism",
     "test:db:data-api": "vitest run tests/integration --no-file-parallelism --mode data-api",
     "build": "tsc",
+    "build:lambda": "node scripts/build-lambda.mjs",
     "ingest": "tsc && node --env-file=.env dist/ingest/run.js",
     "ingest:data-api": "tsc && node --env-file=.env --env-file=.env.data-api dist/ingest/run.js",
     "db:check": "tsc && node --env-file=.env dist/db/check.js",
@@ -30,11 +31,14 @@
   "devDependencies": {
     "@types/node": "^26.6.4",
     "@types/pg": "^8.23.1",
+    "esbuild": "^0.28.2",
     "typescript": "^7.0.2",
     "vitest": "^5.0.2"
   },
   "dependencies": {
     "@aws-sdk/client-rds-data": "^3.1157.0",
+    "@aws-sdk/client-ssm": "^3.1160.0",
+    "@fastify/aws-lambda": "^6.4.2",
     "fastify": "^5.12.7",
     "jose": "^6.2.12",
     "pg": "^8.23.1"
