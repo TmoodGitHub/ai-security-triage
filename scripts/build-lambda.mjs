@@ -2,6 +2,7 @@ import { build } from 'esbuild';
 
 const entryPoints = {
   api: 'src/api/lambda.ts',
+  intake: 'src/ingest/lambda.ts',
 };
 
 for (const [name, entry] of Object.entries(entryPoints)) {

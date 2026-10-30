@@ -7,14 +7,20 @@ import type {
   NormalizedEvent,
 } from './types.js';
 
+export function decodeCloudTrailFile(
+  bytes: Uint8Array,
+  name: string,
+): string {
+  const data = name.endsWith('.gz')
+    ? gunzipSync(bytes)
+    : bytes;
+  return Buffer.from(data).toString('utf8');
+}
+
 export async function readCloudTrailFile(
   path: string,
 ): Promise<string> {
-  const bytes = await readFile(path);
-  if (path.endsWith('.gz')) {
-    return gunzipSync(bytes).toString('utf8');
-  }
-  return bytes.toString('utf8');
+  return decodeCloudTrailFile(await readFile(path), path);
 }
 
 export function parseCloudTrailFile(
