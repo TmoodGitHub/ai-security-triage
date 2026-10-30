@@ -8,7 +8,7 @@ AI-assisted triage of AWS security logs. The service takes in CloudTrail events,
 
 ## Status
 
-**In progress.** Next: deploying to AWS with Terraform (started: remote state in S3 and a monthly budget alert).
+**In progress.** Live on AWS: the dashboard (S3 and CloudFront), the findings API (Lambda and API Gateway) and the database (Aurora Serverless v2, reached through the RDS Data API). Next: moving log intake and AI triage onto AWS (S3, SQS and Lambda).
 
 - [x] Sample CloudTrail data
 - [x] TypeScript project setup
@@ -67,12 +67,12 @@ Cost comes from the token counts Claude reports for each call, at Claude Haiku 4
 - **TypeScript and Node.js** for log intake and the Findings API (Fastify)
 - **Python** for the AI triage step and its evals
 - **Claude** (Anthropic API) with structured output, checked against a schema
-- **PostgreSQL** for storage, run locally with Docker Compose
+- **PostgreSQL**: Docker Compose locally; Aurora Serverless v2 on AWS, which scales to zero when idle and has no open database port (queries go through the RDS Data API, authorized by IAM)
 - **React and Vite** for the analyst screen
 - **JWT** (jose) for API sign-in tokens
 - **Vitest** for TypeScript tests, including database tests against a separate test database
 - **GitHub Actions** to run the tests on every push
-- **Terraform** for AWS infrastructure (in progress: remote state in S3 and a budget alert); hosting on AWS (Lambda, SQS, S3) is planned
+- **Terraform** for all AWS infrastructure: remote state, budget alert, S3 and CloudFront hosting, Aurora, and the API on Lambda behind API Gateway
 
 ## Project layout
 
@@ -86,7 +86,8 @@ db/migrations/   Database tables, applied in number order
 triage/          AI triage step, evals and eval log (Python)
 web/             Analyst screen (React)
 tests/           TypeScript tests (tests/integration/ needs the database)
-infra/           Terraform files (in progress)
+infra/           Terraform for everything on AWS
+scripts/         Build script that bundles the Lambda functions
 ```
 
 ## Running it locally
