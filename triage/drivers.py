@@ -11,9 +11,10 @@ import os
 import re
 import time
 from datetime import datetime, timezone
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
-import psycopg
+if TYPE_CHECKING:
+    import psycopg
 from psycopg.rows import dict_row
 
 DRIVERS = ("pg", "data-api")
@@ -26,10 +27,12 @@ class Db(Protocol):
 
 
 class PgDb:
-    def __init__(self, conn: psycopg.Connection):
+    def __init__(self, conn: "psycopg.Connection"):
         self.conn = conn
 
     def query(self, sql, params=None):
+        from psycopg.rows import dict_row
+
         with self.conn.cursor(row_factory=dict_row) as cursor:
             cursor.execute(sql, params)
             return cursor.fetchall()
@@ -172,6 +175,8 @@ def connect(driver: str | None = None, database: str | None = None) -> Db:
     driver = driver or os.environ.get("DB_DRIVER", "pg")
 
     if driver == "pg":
+        import psycopg
+        
         conn = psycopg.connect(
             host=os.environ["DB_HOST"],
             port=os.environ["DB_PORT"],

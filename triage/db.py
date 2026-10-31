@@ -17,6 +17,17 @@ def fetch_untriaged_events(db: Db, limit: int) -> list[tuple[str, dict]]:
     )
     return [(row["event_id"], row["raw"]) for row in rows]
 
+def fetch_event_for_triage(db: Db, event_id: str) -> dict | None:
+    rows = db.query(
+        """
+        SELECT e.raw
+        FROM events e
+        WHERE e.event_id = %(event_id)s
+            AND NOT EXISTS (SELECT 1 FROM findings f WHERE f.event_id = e.event_id)
+        """,
+        {"event_id": event_id},
+    )
+    return rows[0]["raw"] if rows else None
 
 def save_finding(db: Db, event_id: str, result: TriageResult, model: str) -> None:
     # evidence and unknowns are sent as JSON and unpacked into TEXT[] in SQL,
@@ -33,6 +44,7 @@ def save_finding(db: Db, event_id: str, result: TriageResult, model: str) -> Non
             ARRAY(SELECT jsonb_array_elements_text(%(unknowns)s::jsonb)),
             %(model)s
         )
+        ON CONFLICT (event_id) DO NOTHING
         """,
         {
             "event_id": event_id,

@@ -17,7 +17,7 @@ function requireEnv(name: string): string {
 
 const resourceArn = requireEnv('DB_CLUSTER_ARN');
 const secretArn = requireEnv('DB_SECRET_ARN');
-const database = requireEnv('DB_NAME');
+const database = process.argv[2] ?? requireEnv('DB_NAME');
 const client = new RDSDataClient({});
 
 function splitStatements(sql: string): string[] {
