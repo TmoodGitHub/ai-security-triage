@@ -62,3 +62,22 @@ resource "aws_rds_cluster_instance" "db" {
     engine              = aws_rds_cluster.db.engine
     engine_version      = aws_rds_cluster.db.engine_version
 }
+
+data "aws_iam_policy_document" "database_access" {
+    statement {
+        sid = "QueryDatabase"
+        actions = [
+            "rds-data:ExecuteStatement",
+            "rds-data:BeginTransaction",
+            "rds-data:CommitTransaction",
+            "rds-data:RollbackTransaction",
+        ]
+        resources = [aws_rds_cluster.db.arn]
+    }
+
+    statement {
+        sid       = "ReadDatabaseSecret"
+        actions   = ["secretsmanager:GetSecretValue"]
+        resources = [aws_rds_cluster.db.master_user_secret[0].secret_arn]
+    }
+}

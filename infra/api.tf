@@ -39,24 +39,7 @@ resource "aws_iam_role_policy_attachment" "api_logs" {
 }
 
 data "aws_iam_policy_document" "api" {
-    statement {
-        sid = "QueryDatabase"
-        actions = [
-            "rds-data:ExecuteStatement",
-            "rds-data:BeginTransaction",
-            "rds-data:CommitTransaction",
-            "rds-data:RollbackTransaction",
-        ]
-        resources = [aws_rds_cluster.db.arn]
-    }
-
-    # The Data API signs in to the database with this secret on the
-    # caller's behalf, so the caller needs permission to read it.
-    statement {
-        sid       = "ReadDatabaseSecret"
-        actions   = ["secretsmanager:GetSecretValue"]
-        resources = [aws_rds_cluster.db.master_user_secret[0].secret_arn]
-    }
+    source_policy_documents = [data.aws_iam_policy_document.database_access.json]
 
     statement {
         sid       = "ReadJwtSecret"
@@ -148,8 +131,6 @@ data "aws_cloudfront_cache_policy" "caching_disabled" {
     name = "Managed-CachingDisabled"
 }
 
-# Forwards every viewer header, including Authorization, except Host:
-# API Gateway needs Host to be its own domain.
 data "aws_cloudfront_origin_request_policy" "all_viewer_except_host" {
     name = "Managed-AllViewerExceptHostHeader"
 }

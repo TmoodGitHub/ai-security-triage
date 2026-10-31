@@ -25,3 +25,13 @@ output "api_endpoint" {
     description = "API Gateway URL; the dashboard reaches it through CloudFront at /api"
     value       = aws_apigatewayv2_api.api.api_endpoint
 }
+
+output "intake_bucket" {
+    description = "Upload CloudTrail files here to ingest them"
+    value       = aws_s3_bucket.intake.id
+}
+
+output "events_queue_url" {
+    description = "Queue of event IDs waiting for triage"
+    value       = aws_sqs_queue.events.url
+}
