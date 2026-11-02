@@ -128,7 +128,7 @@ export function createDataApiDb(
 ): Db {
   const client = options.client ?? new RDSDataClient({});
   const retryDelayMs = options.retryDelayMs ?? 5_000;
-  const maxAttempts = options.maxAttempts ?? 12;
+  const maxAttempts = options.maxAttempts ?? 24;
   const { resourceArn, secretArn, database } = config;
 
   async function withResumeRetry<T>(

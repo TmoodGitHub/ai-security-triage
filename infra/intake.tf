@@ -33,7 +33,7 @@ resource "aws_sqs_queue" "events_dlq" {
 resource "aws_sqs_queue" "events" {
     name                       = "ai-security-triage-events"
     message_retention_seconds  = 1209600
-    visibility_timeout_seconds = 540
+    visibility_timeout_seconds = 1080
 
     redrive_policy = jsonencode({
         deadLetterTargetArn = aws_sqs_queue.events_dlq.arn
@@ -101,7 +101,7 @@ resource "aws_lambda_function" "intake" {
     filename         = data.archive_file.intake.output_path
     source_code_hash = data.archive_file.intake.output_base64sha256
     memory_size      = 512
-    timeout          = 120
+    timeout          = 180
 
     environment {
         variables = {

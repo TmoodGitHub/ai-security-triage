@@ -62,7 +62,7 @@ resource "aws_lambda_function" "triage" {
     filename         = data.archive_file.triage.output_path
     source_code_hash = data.archive_file.triage.output_base64sha256
     memory_size      = 512
-    timeout          = 90
+    timeout          = 180
 
     environment {
         variables = {

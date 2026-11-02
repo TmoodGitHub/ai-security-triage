@@ -119,7 +119,7 @@ class DataApiDb:
         secret_arn: str,
         database: str,
         retry_delay: float = 5.0,
-        max_attempts: int = 12,
+        max_attempts: int = 24,
     ):
         self.client = client
         self.resource_arn = resource_arn
