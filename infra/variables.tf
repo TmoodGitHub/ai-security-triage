@@ -15,3 +15,11 @@ variable "jwt_secret" {
     sensitive   = true
     ephemeral   = true
 }
+
+variable "anthropic_api_key" {
+    description = "Antrhopic API key used by the triage Lambda"
+    type        = string
+    sensitive   = true
+    ephemeral   = true
+}
+

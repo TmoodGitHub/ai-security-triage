@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     import psycopg
-from psycopg.rows import dict_row
 
 DRIVERS = ("pg", "data-api")
 
