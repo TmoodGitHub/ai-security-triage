@@ -1,15 +1,3 @@
-# Findings API: Lambda behind an API Gateway HTTP API, reached through
-# CloudFront at /api/* on the same domain as the dashboard.
-
-# Signing key for sign-in tokens. Write-only: Terraform sends it to AWS but
-# never stores it in state. Raise value_wo_version to push a new value.
-resource "aws_ssm_parameter" "jwt_secret" {
-    name             = "/ai-security-triage/jwt-secret"
-    description      = "Signing key for analyst sign-in tokens"
-    type             = "SecureString"
-    value_wo         = var.jwt_secret
-    value_wo_version = 1
-}
 
 data "archive_file" "api" {
     type        = "zip"
@@ -40,12 +28,6 @@ resource "aws_iam_role_policy_attachment" "api_logs" {
 
 data "aws_iam_policy_document" "api" {
     source_policy_documents = [data.aws_iam_policy_document.database_access.json]
-
-    statement {
-        sid       = "ReadJwtSecret"
-        actions   = ["ssm:GetParameter"]
-        resources = [aws_ssm_parameter.jwt_secret.arn]
-    }
 }
 
 resource "aws_iam_role_policy" "api" {
@@ -54,7 +36,6 @@ resource "aws_iam_role_policy" "api" {
     policy = data.aws_iam_policy_document.api.json
 }
 
-# Created here so logs expire; Lambda's own default keeps them forever.
 resource "aws_cloudwatch_log_group" "api" {
     name              = "/aws/lambda/ai-security-triage-api"
     retention_in_days = 14
@@ -69,7 +50,6 @@ resource "aws_lambda_function" "api" {
     filename         = data.archive_file.api.output_path
     source_code_hash = data.archive_file.api.output_base64sha256
     memory_size      = 512
-    # API Gateway gives up after 30 seconds, so waiting longer is pointless.
     timeout          = 30
 
     environment {
@@ -78,7 +58,8 @@ resource "aws_lambda_function" "api" {
             DB_CLUSTER_ARN       = aws_rds_cluster.db.arn
             DB_SECRET_ARN        = aws_rds_cluster.db.master_user_secret[0].secret_arn
             DB_NAME              = aws_rds_cluster.db.database_name
-            JWT_SECRET_PARAMETER = aws_ssm_parameter.jwt_secret.name
+            COGNITO_USER_POOL_ID = aws_cognito_user_pool.analysts.id
+            COGNITO_CLIENT_ID    = aws_cognito_user_pool_client.web.id
             NODE_OPTIONS         = "--enable-source-maps"
         }
     }

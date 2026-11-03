@@ -1,3 +1,2 @@
 alert_email = "you@example.com"
-jwt_secret = "same-value-as-JWT_SECRET-in-.env"
 anthropic_api_key = "anthropic-api-key-for-the-triage-lambda"

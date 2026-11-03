@@ -48,3 +48,11 @@ output "cognito_domain" {
     description = "Base URL of the hosted sign-in page"
     value       = "https://${aws_cognito_user_pool_domain.analysts.domain}.auth.${var.region}.amazoncognito.com"
 }
+
+output "web_build_env" {
+    value = <<-EOT
+        VITE_COGNITO_AUTHORITY=https://cognito-idp.${var.region}.amazonaws.com/${aws_cognito_user_pool.analysts.id}
+        VITE_COGNITO_CLIENT_ID=${aws_cognito_user_pool_client.web.id}
+        VITE_COGNITO_DOMAIN=https://${aws_cognito_user_pool_domain.analysts.domain}.auth.${var.region}.amazoncognito.com
+    EOT
+}

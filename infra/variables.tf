@@ -9,13 +9,6 @@ variable "alert_email" {
     type        = string
 }
 
-variable "jwt_secret" {
-    description = "Signing key for analyst sign-in tokens; use the same value as JWT_SECRET in .env"
-    type        = string
-    sensitive   = true
-    ephemeral   = true
-}
-
 variable "anthropic_api_key" {
     description = "Antrhopic API key used by the triage Lambda"
     type        = string
