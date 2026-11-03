@@ -3,6 +3,7 @@ export class AuthError extends Error {}
 export interface CurrentUser {
   subject: string;
   name: string | null;
+  canReview: boolean;
 }
 
 export async function apiFetch<T>(

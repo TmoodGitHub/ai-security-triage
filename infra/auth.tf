@@ -43,7 +43,7 @@ resource "aws_cognito_user_pool_client" "web" {
     allowed_oauth_flows                  = ["code"]
     allowed_oauth_scopes                 = ["openid", "email"]
     supported_identity_providers         = ["COGNITO"]
-    explicit_auth_flows                  = ["ALLOW_USER_SRP_AUTH", "ALLOW_REFRESH_TOKEN_AUTH"]
+    explicit_auth_flows                  = ["ALLOW_REFRESH_TOKEN_AUTH"]
 
     callback_urls = ["${local.web_url}/", "http://localhost:5173/"]
     logout_urls   = ["${local.web_url}/", "http://localhost:5173/"]
@@ -65,4 +65,10 @@ resource "aws_cognito_user_pool_client" "web" {
 resource "aws_cognito_user_pool_domain" "analysts" {
     domain       = "ai-security-triage-${data.aws_caller_identity.current.account_id}"
     user_pool_id = aws_cognito_user_pool.analysts.id
+}
+
+resource "aws_cognito_user_group" "reviewers" {
+    name         = "reviewers"
+    user_pool_id = aws_cognito_user_pool.analysts.id
+    description  = "Can approve and reject findings"
 }

@@ -22,6 +22,7 @@ describe('tokens', () => {
     expect(await verify(token)).toEqual({
       subject: 'analyst-1',
       name: 'Alice',
+      canReview: true,
     });
   });
 

@@ -11,6 +11,7 @@ import { usePageTitle } from './usePageTitle';
 interface FindingDetailProps {
   id: string;
   token: string;
+  canReview: boolean;
   onBack: () => void;
   onAuthError: () => void;
 }
@@ -24,6 +25,7 @@ const CLASSIFICATION_LABELS = {
 export default function FindingDetail({
   id,
   token,
+  canReview,
   onBack,
   onAuthError,
 }: FindingDetailProps) {
@@ -150,7 +152,13 @@ export default function FindingDetail({
               Review
             </h3>
             <p role='status'>{saved && 'Review saved.'}</p>
-            {finding.reviewStatus === 'pending' ? (
+            {finding.reviewStatus === 'pending' &&
+            !canReview ? (
+              <p>
+                Awaiting review. This account can view
+                findings but not review them.
+              </p>
+            ) : finding.reviewStatus === 'pending' ? (
               <ReviewForm
                 id={finding.id}
                 token={token}

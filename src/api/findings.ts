@@ -222,6 +222,13 @@ export function registerFindingsRoutes(
       },
     },
     async (request, reply) => {
+      if (!request.user?.canReview) {
+        return reply.code(403).send({
+          error:
+            'This account can view findings but not review them',
+        });
+      }
+
       const { id } = request.params;
       const { decision, classification, note } =
         request.body;

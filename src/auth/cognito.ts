@@ -5,6 +5,8 @@ import {
 } from 'jose';
 import type { AuthUser } from './tokens.js';
 
+export const REVIEWER_GROUP = 'reviewers';
+
 export interface CognitoConfig {
   region: string;
   userPoolId: string;
@@ -34,9 +36,13 @@ export function createCognitoVerifier(
     if (payload.token_use !== 'id') {
       throw new Error('Expected a Cognito ID token');
     }
+    const groups = payload['cognito:groups'];
     return {
       subject: payload.email as string,
       name: payload.email as string,
+      canReview:
+        Array.isArray(groups) &&
+        groups.includes(REVIEWER_GROUP),
     };
   };
 }

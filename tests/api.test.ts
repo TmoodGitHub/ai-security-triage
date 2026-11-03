@@ -72,6 +72,42 @@ describe('GET /me', () => {
     expect(response.json()).toEqual({
       subject: 'test-analyst',
       name: null,
+      canReview: true,
+    });
+  });
+});
+
+describe('view-only accounts', () => {
+  const viewOnlyApp = buildApp({
+    db,
+    verify: async () => ({
+      subject: 'demo@example.com',
+      name: 'demo@example.com',
+      canReview: false,
+    }),
+    logger: false,
+  });
+
+  afterAll(async () => {
+    await viewOnlyApp.close();
+  });
+
+  it('refuses to record a review', async () => {
+    const response = await viewOnlyApp.inject({
+      method: 'POST',
+      url: '/findings/1/review',
+      headers: { authorization: 'Bearer any-token' },
+      payload: {
+        decision: 'approved',
+        classification: 'true_positive',
+        note: 'Looks fine',
+      },
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(response.json()).toEqual({
+      error:
+        'This account can view findings but not review them',
     });
   });
 });

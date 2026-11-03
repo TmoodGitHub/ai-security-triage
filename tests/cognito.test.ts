@@ -51,11 +51,21 @@ beforeAll(async () => {
 });
 
 describe('createCognitoVerifier', () => {
-  it('accepts an ID token from the pool and identifies the user by email', async () => {
+  it('accepts an ID token form the pool, identifies the user by email, and makes them view-only by default', async () => {
     expect(await verify(await cognitoToken())).toEqual({
       subject: 'analyst@example.com',
       name: 'analyst@example.com',
+      canReview: false,
     });
+  });
+
+  it('lets members of the reviewers group review', async () => {
+    const user = await verify(
+      await cognitoToken({
+        'cognito:groups': ['reviewers'],
+      }),
+    );
+    expect(user.canReview).toBe(true);
   });
 
   it('rejects an access token', async () => {

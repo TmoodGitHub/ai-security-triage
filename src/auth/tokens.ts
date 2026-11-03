@@ -6,6 +6,7 @@ export const AUDIENCE = 'findings-api';
 export interface AuthUser {
   subject: string;
   name: string | null;
+  canReview: boolean;
 }
 
 export async function createToken(
@@ -42,6 +43,7 @@ export function createVerifier(secret: string) {
         typeof payload.name === 'string'
           ? payload.name
           : null,
+      canReview: true,
     };
   };
 }

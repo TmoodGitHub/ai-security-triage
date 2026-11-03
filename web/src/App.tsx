@@ -133,6 +133,7 @@ export default function App() {
           <FindingDetail
             id={selectedId}
             token={token}
+            canReview={user?.canReview ?? false}
             onBack={closeFinding}
             onAuthError={handleAuthError}
           />
