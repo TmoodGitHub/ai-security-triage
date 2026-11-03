@@ -17,7 +17,7 @@ variable "anthropic_api_key" {
 }
 
 variable "github_repository" {
-    description = "GitHub repository allowed to deploy, as owner/name"
+    description = "GitHub repository allowed to deploy, as it appears in GitHub's OIDC subject: owner@owner-id/name@repository-id"
     type        = string
-    default     = "TmoodGitHub/ai-security-triage"
+    default     = "TmoodGitHub@28756300/ai-security-triage@1394993262"
 }
