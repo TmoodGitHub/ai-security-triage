@@ -7,7 +7,7 @@ import {
 
 const MIGRATIONS_DIR = 'db/migrations';
 const RESUME_RETRY_MS = 5_000;
-const RESUME_MAX_ATTEMPTS = 12;
+const RESUME_MAX_ATTEMPTS = 24;
 
 function requireEnv(name: string): string {
   const value = process.env[name];

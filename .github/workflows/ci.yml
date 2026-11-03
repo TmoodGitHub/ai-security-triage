@@ -77,3 +77,76 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - run: python -m pytest triage -v
+
+  deploy:
+    needs: [test, test-db, web, python]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy
+      cancel-in-progress: false
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+
+      - name: Sign in to AWS
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Read deploy settings
+        run: |
+          aws ssm get-parameter --name /ai-security-triage/deploy-config \
+            --query Parameter.Value --output text > deploy-config.json
+          jq -r '.webBuildEnv | to_entries[] | "\(.key)=\(.value)"' \
+            deploy-config.json > web/.env.production.local
+
+      - name: Build
+        run: |
+          npm ci
+          npm run build
+          npm run build:lambda
+          python scripts/build_triage_lambda.py
+          cd web && npm ci && npm run build
+
+      - name: Run database migrations
+        run: |
+          export DB_CLUSTER_ARN=$(jq -r .dbClusterArn deploy-config.json)
+          export DB_SECRET_ARN=$(jq -r .dbSecretArn deploy-config.json)
+          export DB_NAME=$(jq -r .dbName deploy-config.json)
+          node dist/db/migrate-aws.js
+
+      - name: Deploy Lambda functions
+        run: |
+          for name in api intake triage; do
+            function=$(jq -r ".functions.$name" deploy-config.json)
+            (cd "build/lambda/$name" && zip -qr "../$name.zip" .)
+            aws lambda update-function-code --function-name "$function" \
+              --zip-file "fileb://build/lambda/$name.zip" > /dev/null
+            aws lambda wait function-updated --function-name "$function"
+            echo "Deployed $function"
+          done
+
+      - name: Deploy dashboard
+        run: |
+          bucket=$(jq -r .webBucket deploy-config.json)
+          aws s3 sync web/dist "s3://$bucket" --delete --exclude index.html \
+            --cache-control "public,max-age=31536000,immutable"
+          aws s3 cp web/dist/index.html "s3://$bucket/index.html" \
+            --cache-control "no-cache"
+          aws cloudfront create-invalidation \
+            --distribution-id "$(jq -r .distributionId deploy-config.json)" \
+            --paths /index.html > /dev/null
