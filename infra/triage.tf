@@ -78,6 +78,10 @@ resource "aws_lambda_function" "triage" {
         aws_cloudwatch_log_group.triage,
         aws_iam_role_policy_attachment.triage_logs,
     ]
+    
+    lifecycle {
+        ignore_changes = [filename, source_code_hash]
+    }
 }
 
 resource "aws_lambda_event_source_mapping" "triage" {

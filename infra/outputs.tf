@@ -56,3 +56,8 @@ output "web_build_env" {
         VITE_COGNITO_DOMAIN=https://${aws_cognito_user_pool_domain.analysts.domain}.auth.${var.region}.amazoncognito.com
     EOT
 }
+
+output "deploy_role_arn" {
+    description = "Role the GitHub Actions deploy job assumes; store as the AWS_DEPLOY_ROLE_ARN repository variable"
+    value       = aws_iam_role.deploy.arn
+}

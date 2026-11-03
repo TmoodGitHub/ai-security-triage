@@ -68,6 +68,10 @@ resource "aws_lambda_function" "api" {
         aws_cloudwatch_log_group.api,
         aws_iam_role_policy_attachment.api_logs,
     ]
+
+    lifecycle {
+        ignore_changes = [filename, source_code_hash]
+    }
 }
 
 resource "aws_apigatewayv2_api" "api" {

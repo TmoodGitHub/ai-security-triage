@@ -118,6 +118,10 @@ resource "aws_lambda_function" "intake" {
         aws_cloudwatch_log_group.intake,
         aws_iam_role_policy_attachment.intake_logs
     ]
+
+    lifecycle {
+        ignore_changes = [filename, source_code_hash]
+    }
 }
 
 resource "aws_lambda_function_event_invoke_config" "intake" {

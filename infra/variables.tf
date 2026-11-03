@@ -16,3 +16,8 @@ variable "anthropic_api_key" {
     ephemeral   = true
 }
 
+variable "github_repository" {
+    description = "GitHub repository allowed to deploy, as owner/name"
+    type        = string
+    default     = "TmoodGitHub/ai-security-triage"
+}
