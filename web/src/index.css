@@ -473,6 +473,33 @@ pre {
   align-self: flex-start;
 }
 
+/* ---------- Demo watermark ---------- */
+.review-form-demo {
+  position: relative;
+  overflow: hidden;
+}
+
+.review-form-demo > :not(.demo-watermark, .hint) {
+  opacity: 0.5;
+}
+
+.demo-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  font-size: clamp(1.5rem, 7vw, 3rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--accent);
+  opacity: 0.2;
+  transform: rotate(-18deg);
+}
+
 /* ---------- Sign in ---------- */
 .sign-in {
   max-width: 28rem;

@@ -11,6 +11,7 @@ interface ReviewFormProps {
   token: string;
   onReviewed: (result: ReviewResult) => void;
   onAuthError: () => void;
+  demo?: boolean;
 }
 
 type Decision = 'approved' | 'rejected';
@@ -20,6 +21,7 @@ export default function ReviewForm({
   token,
   onReviewed,
   onAuthError,
+  demo = false,
 }: ReviewFormProps) {
   const [decision, setDecision] = useState<Decision | null>(
     null,
@@ -34,6 +36,9 @@ export default function ReviewForm({
     event: SubmitEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
+    if (demo) {
+      return;
+    }
     if (
       decision === null ||
       classification === null ||
@@ -77,8 +82,29 @@ export default function ReviewForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className='review-form'>
-      <fieldset>
+    <form
+      onSubmit={handleSubmit}
+      className={
+        demo
+          ? 'review-form review-form-demo'
+          : 'review-form'
+      }
+    >
+      {demo && (
+        <>
+          <p className='hint'>
+            Demo account: reviews are turned off. Analysts
+            see this form enabled.
+          </p>
+          <div
+            className='demo-watermark'
+            aria-hidden='true'
+          >
+            Demo · view only
+          </div>
+        </>
+      )}
+      <fieldset disabled={demo}>
         <legend>Is the AI's severity right?</legend>
         <label>
           <input
@@ -94,7 +120,7 @@ export default function ReviewForm({
         <label>
           <input
             type='radio'
-            name='deision'
+            name='decision'
             value='rejected'
             checked={decision === 'rejected'}
             onChange={() => setDecision('rejected')}
@@ -103,7 +129,7 @@ export default function ReviewForm({
         </label>
       </fieldset>
 
-      <fieldset>
+      <fieldset disabled={demo}>
         <legend>What was the activity?</legend>
         <label>
           <input
@@ -152,12 +178,13 @@ export default function ReviewForm({
         maxLength={2000}
         value={note}
         onChange={(event) => setNote(event.target.value)}
+        disabled={demo}
         required
       />
 
       {error && <p role='alert'>{error}</p>}
 
-      <button type='submit' disabled={saving}>
+      <button type='submit' disabled={saving || demo}>
         {saving ? 'Saving...' : 'Submit review'}
       </button>
     </form>

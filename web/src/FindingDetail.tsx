@@ -152,16 +152,11 @@ export default function FindingDetail({
               Review
             </h3>
             <p role='status'>{saved && 'Review saved.'}</p>
-            {finding.reviewStatus === 'pending' &&
-            !canReview ? (
-              <p>
-                Awaiting review. This account can view
-                findings but not review them.
-              </p>
-            ) : finding.reviewStatus === 'pending' ? (
+            {finding.reviewStatus === 'pending' ? (
               <ReviewForm
                 id={finding.id}
                 token={token}
+                demo={!canReview}
                 onReviewed={handleReviewed}
                 onAuthError={onAuthError}
               />
