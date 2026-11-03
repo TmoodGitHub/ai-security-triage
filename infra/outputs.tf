@@ -35,3 +35,16 @@ output "events_queue_url" {
     description = "Queue of event IDs waiting for triage"
     value       = aws_sqs_queue.events.url
 }
+
+output "cognito_user_pool_id" {
+    value = aws_cognito_user_pool.analysts.id
+}
+
+output "cognito_client_id" {
+    value = aws_cognito_user_pool_client.web.id
+}
+
+output "cognito_domain" {
+    description = "Base URL of the hosted sign-in page"
+    value       = "https://${aws_cognito_user_pool_domain.analysts.domain}.auth.${var.region}.amazoncognito.com"
+}
