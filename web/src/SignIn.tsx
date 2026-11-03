@@ -4,6 +4,7 @@ import {
   apiFetch,
   type CurrentUser,
 } from './api';
+import { congitoEnabled, startSignIn } from './auth';
 import { usePageTitle } from './usePageTitle';
 
 interface SignInProps {
@@ -54,33 +55,46 @@ export default function SignIn({ onSignIn }: SignInProps) {
           aria-labelledby='sign-in-heading'
         >
           <h2 id='sign-in-heading'>Sign in</h2>
-          <form onSubmit={handleSubmit}>
-            <label htmlFor='token'>Access token</label>
-            <textarea
-              id='token'
-              rows={4}
-              value={token}
-              onChange={(event) =>
-                setToken(event.target.value)
-              }
-              aria-describedby='token-help'
-              required
-            />
-            <p id='token-help' className='hint'>
-              Create one with{' '}
-              <code>
-                npm run token -- your-id "Your Name"
-              </code>
-            </p>
-            {error && <p role='alert'>{error}</p>}
-            <button
-              type='submit'
-              className='button-primary'
-              disabled={checking}
-            >
-              {checking ? 'Checking...' : 'Sign in'}
-            </button>
-          </form>
+          {congitoEnabled ? (
+            <>
+              <p>Analyst sign in with their account.</p>
+              <button
+                type='button'
+                className='button-primary'
+                onClick={() => void startSignIn()}
+              >
+                Sign in
+              </button>
+            </>
+          ) : (
+            <form onSubmit={handleSubmit}>
+              <label htmlFor='token'>Access token</label>
+              <textarea
+                id='token'
+                rows={4}
+                value={token}
+                onChange={(event) =>
+                  setToken(event.target.value)
+                }
+                aria-describedby='token-help'
+                required
+              />
+              <p id='token-help' className='hint'>
+                Create one with{' '}
+                <code>
+                  npm run token -- your-id "Your Name"
+                </code>
+              </p>
+              {error && <p role='alert'>{error}</p>}
+              <button
+                type='submit'
+                className='button-primary'
+                disabled={checking}
+              >
+                {checking ? 'Checking...' : 'Sign in'}
+              </button>
+            </form>
+          )}
         </section>
       </main>
     </>

@@ -4,17 +4,28 @@ import {
   type CurrentUser,
   type Filters,
 } from './api';
+import {
+  congitoEnabled,
+  currentIdToken,
+  forgetSession,
+  signOutOfCognito,
+} from './auth';
 import FindingDetail from './FindingDetail';
 import FindingsList from './FindingsList';
 import SignIn from './SignIn';
 import SummaryPanel from './SummaryPanel';
 
-const TOKEN_KEY = 'triage-token';
+const TOKEN_KEY = 'triage_token';
 
 export default function App() {
   const [token, setToken] = useState<string | null>(() =>
-    sessionStorage.getItem(TOKEN_KEY),
+    congitoEnabled
+      ? null
+      : sessionStorage.getItem(TOKEN_KEY),
   );
+
+  const [checkingSession, setCheckingSession] =
+    useState(congitoEnabled);
   const [user, setUser] = useState<CurrentUser | null>(
     null,
   );
@@ -22,19 +33,41 @@ export default function App() {
     severity: '',
     status: 'pending',
   });
-  const [selectedId, setSelectedId] = useState<
+  const [selectedId, setselectedId] = useState<
     string | null
   >(null);
   const [lastViewedId, setLastViewedId] = useState<
     string | null
   >(null);
 
-  const signOut = useCallback(() => {
+  const clearSession = useCallback(() => {
     sessionStorage.removeItem(TOKEN_KEY);
     setToken(null);
     setUser(null);
-    setSelectedId(null);
+    setselectedId(null);
     setLastViewedId(null);
+  }, []);
+
+  const handleAuthError = useCallback(() => {
+    clearSession();
+    void forgetSession();
+  }, [clearSession]);
+
+  function signOut() {
+    clearSession();
+    if (congitoEnabled) {
+      void signOutOfCognito();
+    }
+  }
+
+  useEffect(() => {
+    if (!congitoEnabled) {
+      return;
+    }
+    currentIdToken()
+      .then(setToken)
+      .catch(() => setToken(null))
+      .finally(() => setCheckingSession(false));
   }, []);
 
   useEffect(() => {
@@ -43,8 +76,8 @@ export default function App() {
     }
     apiFetch<CurrentUser>('/me', token)
       .then(setUser)
-      .catch(() => signOut());
-  }, [token, user, signOut]);
+      .catch(handleAuthError);
+  }, [token, user, handleAuthError]);
 
   function signIn(newToken: string, newUser: CurrentUser) {
     sessionStorage.setItem(TOKEN_KEY, newToken);
@@ -54,7 +87,11 @@ export default function App() {
 
   function closeFinding() {
     setLastViewedId(selectedId);
-    setSelectedId(null);
+    setselectedId(null);
+  }
+
+  if (checkingSession) {
+    return null;
   }
 
   if (token === null) {
@@ -81,15 +118,15 @@ export default function App() {
               token={token}
               filters={filters}
               onFilterChange={setFilters}
-              onAuthError={signOut}
+              onAuthError={handleAuthError}
             />
             <FindingsList
               token={token}
               filters={filters}
               focusId={lastViewedId}
               onFilterChange={setFilters}
-              onSelect={setSelectedId}
-              onAuthError={signOut}
+              onSelect={setselectedId}
+              onAuthError={handleAuthError}
             />
           </>
         ) : (
@@ -97,7 +134,7 @@ export default function App() {
             id={selectedId}
             token={token}
             onBack={closeFinding}
-            onAuthError={signOut}
+            onAuthError={handleAuthError}
           />
         )}
       </main>
