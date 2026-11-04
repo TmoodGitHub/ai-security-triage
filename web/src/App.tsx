@@ -14,6 +14,7 @@ import FindingDetail from './FindingDetail';
 import FindingsList from './FindingsList';
 import SignIn from './SignIn';
 import SummaryPanel from './SummaryPanel';
+import { useDatabaseWaking } from './useDatabaseWaking';
 
 const TOKEN_KEY = 'triage_token';
 
@@ -39,6 +40,7 @@ export default function App() {
   const [lastViewedId, setLastViewedId] = useState<
     string | null
   >(null);
+  const databaseWaking = useDatabaseWaking();
 
   const clearSession = useCallback(() => {
     sessionStorage.removeItem(TOKEN_KEY);
@@ -112,6 +114,10 @@ export default function App() {
         </div>
       </header>
       <main>
+        <p role='status' className='waking'>
+          {databaseWaking &&
+            'Waking up the database. After a quiet period this takes up to a minute.'}
+        </p>
         {selectedId === null ? (
           <>
             <SummaryPanel

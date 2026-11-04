@@ -14,7 +14,7 @@ Demo login: `demo@example.com` / `demo-hire-Tamer-pronto-2026`
 
 The demo account can view everything but cannot review findings; the API enforces that, not just the screen.
 
-The database scales to zero when nobody is using it. If the demo has been idle for a while, the first request wakes it up, which can take 15 to 30 seconds and occasionally longer than the API's 30-second limit. If the first page shows an error, reload it.
+The database scales to zero when nobody is using it. If the demo has been idle for a while, the first request wakes it up: the dashboard shows "Waking up the database" and keeps trying, which takes 15 to 30 seconds, or up to a minute after a long quiet period.
 
 ![Analyst dashboard: findings awaiting review by severity, the AI agreement rate, and the findings list](docs/dashboard.png)
 

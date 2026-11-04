@@ -29,11 +29,18 @@ function createDb(): Db {
   }
 
   if (driver === 'data-api') {
-    return createDataApiDb({
-      resourceArn: requireEnv('DB_CLUSTER_ARN'),
-      secretArn: requireEnv('DB_SECRET_ARN'),
-      database: requireEnv('DB_NAME'),
-    });
+    return createDataApiDb(
+      {
+        resourceArn: requireEnv('DB_CLUSTER_ARN'),
+        secretArn: requireEnv('DB_SECRET_ARN'),
+        database: requireEnv('DB_NAME'),
+      },
+      {
+        maxAttempts: Number(
+          process.env.DB_RESUME_ATTEMPTS ?? 24,
+        ),
+      },
+    );
   }
 
   throw new Error(

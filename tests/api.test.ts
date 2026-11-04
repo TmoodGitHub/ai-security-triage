@@ -112,6 +112,43 @@ describe('view-only accounts', () => {
   });
 });
 
+describe('a database that is waking up', () => {
+  const resumingDb = {
+    async query(): Promise<never> {
+      const error = new Error('Database is resuming');
+      error.name = 'DatabaseResumingException';
+      throw error;
+    },
+    async transaction(): Promise<never> {
+      throw new Error('not used');
+    },
+    async end() {},
+  };
+  const resumingApp = buildApp({
+    db: resumingDb,
+    verify,
+    logger: false,
+  });
+
+  afterAll(async () => {
+    await resumingApp.close();
+  });
+
+  it('answers 503 with a retry hint instead of failing', async () => {
+    const response = await resumingApp.inject({
+      method: 'GET',
+      url: '/findings/summary',
+      headers,
+    });
+
+    expect(response.statusCode).toBe(503);
+    expect(response.headers['retry-after']).toBe('5');
+    expect(response.json()).toMatchObject({
+      code: 'database_resuming',
+    });
+  });
+});
+
 describe('request validation', () => {
   it('rejects an invalid severity filter', async () => {
     const response = await app.inject({

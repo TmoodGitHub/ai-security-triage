@@ -6,21 +6,73 @@ export interface CurrentUser {
   canReview: boolean;
 }
 
+const RESUME_RETRY_MS = 5_000;
+const RESUME_MAX_WAIT_MS = 120_000;
+
+let waitingRequests = 0;
+const wakingListeners = new Set<() => void>();
+
+export function onDatabaseWaking(listener: () => void) {
+  wakingListeners.add(listener);
+  return () => {
+    wakingListeners.delete(listener);
+  };
+}
+
+export function isDatabaseWaking(): boolean {
+  return waitingRequests > 0;
+}
+
+function setWaiting(change: 1 | -1) {
+  waitingRequests += change;
+  wakingListeners.forEach((listener) => listener());
+}
+
+async function isResuming(response: Response) {
+  if (response.status !== 503) return false;
+  const body = await response
+    .clone()
+    .json()
+    .catch(() => ({}));
+  return body.code === 'database_resuming';
+}
+
 export async function apiFetch<T>(
   path: string,
   token: string,
   init: RequestInit = {},
 ): Promise<T> {
-  const response = await fetch(`/api${path}`, {
-    ...init,
-    headers: {
-      ...init.headers,
-      Authorization: `Bearer ${token}`,
-      ...(init.body
-        ? { 'Content-Type': 'application/json' }
-        : {}),
-    },
-  });
+  const send = () =>
+    fetch(`/api${path}`, {
+      ...init,
+      headers: {
+        ...init.headers,
+        Authorization: `Bearer ${token}`,
+        ...(init.body
+          ? { 'Content-Type': 'application/json' }
+          : {}),
+      },
+    });
+
+  let response = await send();
+  if (await isResuming(response)) {
+    setWaiting(1);
+    try {
+      for (
+        let waited = 0;
+        waited < RESUME_MAX_WAIT_MS &&
+        (await isResuming(response));
+        waited += RESUME_RETRY_MS
+      ) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, RESUME_RETRY_MS),
+        );
+        response = await send();
+      }
+    } finally {
+      setWaiting(-1);
+    }
+  }
 
   if (response.status === 401) {
     throw new AuthError(

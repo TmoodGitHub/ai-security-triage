@@ -1,8 +1,7 @@
-import Fastify from 'fastify';
+import Fastify, { type FastifyError } from 'fastify';
 import type { Db } from '../db/types.js';
 import type { AuthUser, Verifier } from '../auth/tokens.js';
 import { registerFindingsRoutes } from './findings.js';
-import { request } from 'node:http';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -58,6 +57,25 @@ export function buildApp({
   app.get('/me', async (request) => {
     return request.user;
   });
+
+  app.setErrorHandler<FastifyError>(
+    (error, request, reply) => {
+      if (error.name === 'DatabaseResumingException') {
+        return reply
+          .code(503)
+          .header('Retry-After', '5')
+          .send({
+            error:
+              'The database is waking up. Try again in a few seconds.',
+            code: 'database_resuming',
+          });
+      }
+      if ((error.statusCode ?? 500) >= 500) {
+        request.log.error(error);
+      }
+      return reply.send(error);
+    },
+  );
 
   registerFindingsRoutes(app, db);
 

@@ -61,6 +61,7 @@ resource "aws_lambda_function" "api" {
             COGNITO_USER_POOL_ID = aws_cognito_user_pool.analysts.id
             COGNITO_CLIENT_ID    = aws_cognito_user_pool_client.web.id
             NODE_OPTIONS         = "--enable-source-maps"
+            DB_RESUME_ATTEMPTS   = "1"
         }
     }
 
