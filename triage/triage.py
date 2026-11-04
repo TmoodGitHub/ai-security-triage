@@ -1,5 +1,5 @@
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from time import perf_counter
@@ -60,6 +60,7 @@ class TriageCall:
     input_tokens: int
     output_tokens: int
     seconds: float
+    lookups: list[str] = field(default_factory=list)
 
     @property
     def cost(self) -> float:
@@ -98,22 +99,23 @@ def describe_target(event: dict) -> str | None:
             return f"{kind} {params[key]}"
     return None
 
+def format_activity_line(r: dict) -> str:
+    time = r["event_time"]
+    if isinstance(time, datetime):
+        time = time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    outcome = "succeeded" if r["success"] else f"failed ({r['error_code'] or 'no error code'})"
+    action = f"{r['event_name']} ({r['target']})" if r.get("target") else r["event_name"]
+    return f"- {time}  {action} by {r['who']} from {r['source_ip_address']}, {outcome}"
+
 def format_related(related: list[dict]) -> str:
     if not related:
         return "Related events: none found."
 
     lines = ["Related events (same identity or IP, within 24 hours):"]
     for r in related:
-        time = r["event_time"]
-        if isinstance(time, datetime):
-            time = time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-        outcome = "succeeded" if r["success"] else f"failed ({r['error_code'] or 'no error code'})"
-        action = f"{r['event_name']} ({r['target']})" if r.get("target") else r["event_name"]
-        lines.append(
-            f"- {time}  {action} by {r['who']} from {r['source_ip_address']}, {outcome} [{r['link']}]"
-        )
+        lines.append(f"{format_activity_line(r)} [{r['link']}]")
     return "\n".join(lines)
-
+    
 def triage_event(client: anthropic.Anthropic, event: dict, related: list[dict] | None = None) -> TriageCall:
     content = "Triage this CloudTrail event:\n\n" + json.dumps(event, indent=2)
     if related is not None:

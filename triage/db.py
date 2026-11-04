@@ -92,3 +92,37 @@ def fetch_related_events(db: Db, event_id: str, limit: int = 20) -> list[dict]:
     for row in rows:
         row["target"] = describe_target(row.pop("raw"))
     return rows
+
+_LINK_COLUMNS = {"identity": "principal_id", "ip": "source_ip_address"}
+
+def fetch_activity(db: Db, event_id: str, by: str, hours: int, limit: int = 20) -> list[dict]:
+    column = _LINK_COLUMNS[by]
+    rows = db.query(
+        f"""
+        WITH target AS (
+            SELECT event_id, {column} AS link_value, event_time
+            FROM events
+            WHERE event_id = %(event_id)s
+        )
+        SELECT
+            e.event_time,
+            e.event_name,
+            COALESCE(e.user_name, e.User_arn, e.user_type) AS who,
+            e.source_ip_address,
+            e.success,
+            e.error_code,
+            e.raw
+        FROM events e
+        JOIN target t ON e.event_id <> t.event_id
+        WHERE e.{column} = t.link_value
+            AND e.event_time BETWEEN t.event_time - make_interval(hours => %(hours)s::int)
+                AND t.event_time + make_interval(hours => %(hours)s::int)
+        ORDER BY e.event_time
+        LIMIT %(limit)s
+        """,
+        {"event_id": event_id, "hours": hours, "limit": limit},
+    )
+
+    for row in rows:
+        row["target"] = describe_target(row.pop("raw"))
+    return rows
