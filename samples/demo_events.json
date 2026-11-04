@@ -1,0 +1,253 @@
+{
+  "Records": [
+    {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEMLOPEZ001",
+        "arn": "arn:aws:iam::123456789012:user/mlopez",
+        "accountId": "123456789012",
+        "userName": "mlopez"
+      },
+      "eventTime": "2026-10-01T09:00:00Z",
+      "eventSource": "signin.amazonaws.com",
+      "eventName": "ConsoleLogin",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.71",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
+      "requestParameters": null,
+      "responseElements": {
+        "ConsoleLogin": "Failure"
+      },
+      "eventID": "demo-01-0000-4000-8000-000000000001",
+      "readOnly": false,
+      "eventType": "AwsConsoleSignIn",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012",
+      "errorMessage": "Failed authentication",
+      "additionalEventData": {
+        "LoginTo": "https://console.aws.amazon.com/console/home",
+        "MobileVersion": "No",
+        "MFAUsed": "No"
+      }
+    },
+    {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLERPATEL001",
+        "arn": "arn:aws:iam::123456789012:user/rpatel",
+        "accountId": "123456789012",
+        "userName": "rpatel"
+      },
+      "eventTime": "2026-10-01T10:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "GetBucketPolicy",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.72",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Linux/6.8.0",
+      "requestParameters": {
+        "bucketName": "finance-reports",
+        "Host": "finance-reports.s3.amazonaws.com",
+        "policy": ""
+      },
+      "responseElements": null,
+      "eventID": "demo-02-0000-4000-8000-000000000002",
+      "readOnly": true,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012",
+      "errorCode": "AccessDenied",
+      "errorMessage": "Access Denied"
+    },
+    {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEKCHEN0001",
+        "arn": "arn:aws:iam::123456789012:user/kchen",
+        "accountId": "123456789012",
+        "userName": "kchen"
+      },
+      "eventTime": "2026-10-01T11:00:00Z",
+      "eventSource": "signin.amazonaws.com",
+      "eventName": "ConsoleLogin",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.121",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
+      "requestParameters": null,
+      "responseElements": {
+        "ConsoleLogin": "Success"
+      },
+      "eventID": "demo-03-0000-4000-8000-000000000003",
+      "readOnly": false,
+      "eventType": "AwsConsoleSignIn",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012",
+      "additionalEventData": {
+        "LoginTo": "https://console.aws.amazon.com/console/home",
+        "MobileVersion": "No",
+        "MFAUsed": "No"
+      }
+    },
+    {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEKCHEN0001",
+        "arn": "arn:aws:iam::123456789012:user/kchen",
+        "accountId": "123456789012",
+        "userName": "kchen"
+      },
+      "eventTime": "2026-10-01T12:00:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "AuthorizeSecurityGroupIngress",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.121",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Linux/6.8.0",
+      "requestParameters": {
+        "groupId": "sg-0dev5678abc901234",
+        "ipPermissions": {
+          "items": [
+            {
+              "ipProtocol": "tcp",
+              "fromPort": 22,
+              "toPort": 22,
+              "ipRanges": {
+                "items": [
+                  {
+                    "cidrIp": "203.0.113.121/32",
+                    "description": "kchen home"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "responseElements": {
+        "_return": true
+      },
+      "eventID": "demo-04-0000-4000-8000-000000000004",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEKCHEN0001",
+        "arn": "arn:aws:iam::123456789012:user/kchen",
+        "accountId": "123456789012",
+        "userName": "kchen"
+      },
+      "eventTime": "2026-10-01T13:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutBucketVersioning",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.121",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Linux/6.8.0",
+      "requestParameters": {
+        "bucketName": "dev-build-artifacts",
+        "Host": "dev-build-artifacts.s3.amazonaws.com",
+        "VersioningConfiguration": {
+          "Status": "Suspended"
+        },
+        "versioning": ""
+      },
+      "responseElements": null,
+      "eventID": "demo-05-0000-4000-8000-000000000005",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLERPATEL001",
+        "arn": "arn:aws:iam::123456789012:user/rpatel",
+        "accountId": "123456789012",
+        "userName": "rpatel"
+      },
+      "eventTime": "2026-10-01T14:00:00Z",
+      "eventSource": "secretsmanager.amazonaws.com",
+      "eventName": "GetSecretValue",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.72",
+      "userAgent": "AWS Internal",
+      "requestParameters": {
+        "secretId": "analytics/warehouse-readonly"
+      },
+      "responseElements": null,
+      "eventID": "demo-06-0000-4000-8000-000000000006",
+      "readOnly": true,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEKCHEN0001",
+        "arn": "arn:aws:iam::123456789012:user/kchen",
+        "accountId": "123456789012",
+        "userName": "kchen"
+      },
+      "eventTime": "2026-10-01T15:00:00Z",
+      "eventSource": "iam.amazonaws.com",
+      "eventName": "ListAccessKeys",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.121",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Linux/6.8.0",
+      "requestParameters": {
+        "userName": "reports-svc"
+      },
+      "responseElements": null,
+      "eventID": "demo-07-0000-4000-8000-000000000007",
+      "readOnly": true,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "AROAEXAMPLEETLNIGHT1:etl-nightly-run",
+        "arn": "arn:aws:sts::123456789012:assumed-role/etl-nightly/etl-nightly-run",
+        "accountId": "123456789012",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "principalId": "AROAEXAMPLEETLNIGHT1",
+            "arn": "arn:aws:iam::123456789012:role/etl-nightly",
+            "accountId": "123456789012",
+            "userName": "etl-nightly"
+          }
+        }
+      },
+      "eventTime": "2026-10-01T16:00:00Z",
+      "eventSource": "cloudtrail.amazonaws.com",
+      "eventName": "DescribeTrails",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.73",
+      "userAgent": "Boto3/1.35.0 md/Botocore#1.35.0 ua/2.0 os/linux#6.1 lang/python#3.12",
+      "requestParameters": {
+        "includeShadowTrails": true
+      },
+      "responseElements": null,
+      "eventID": "demo-08-0000-4000-8000-000000000008",
+      "readOnly": true,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012",
+      "errorCode": "AccessDenied",
+      "errorMessage": "User: arn:aws:sts::123456789012:assumed-role/etl-nightly/etl-nightly-run is not authorized to perform: cloudtrail:DescribeTrails because no identity-based policy allows the cloudtrail:DescribeTrails action"
+    }
+  ]
+}

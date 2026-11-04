@@ -13,6 +13,7 @@
     "ingest": "tsc && node --env-file=.env dist/ingest/run.js",
     "ingest:data-api": "tsc && node --env-file=.env --env-file=.env.data-api dist/ingest/run.js",
     "sample:fresh": "node scripts/fresh-sample.mjs",
+    "sample:demo": "node scripts/demo-data.mjs",
     "db:check": "tsc && node --env-file=.env dist/db/check.js",
     "api": "tsc && node --env-file=.env dist/api/server.js",
     "token": "tsc && node --env-file=.env dist/auth/make-token.js",
