@@ -30,3 +30,9 @@ Eval sets: hand-labeled CloudTrail events in `eval_cases.json` (16 cases, scored
 | 2026-11-05 20:47 | claude-haiku-4-5 | `53fd66d8` | 12/16 (75%) | 15/16 (94%) | 2/16    | 2/16     | 0/16   | $2.56                 | 3.9s               | [no context] Baseline for the tool-calling comparison                                                                                 |
 | 2026-11-05 20:49 | claude-haiku-4-5 | `53fd66d8` | 5/16 (31%)  | 13/16 (81%) | 0/16    | 11/16    | 0/16   | $3.36                 | 5.1s               | [with context] Baseline for the tool-calling comparison                                                                               |
 | 2026-11-05 20:50 | claude-haiku-4-5 | `53fd66d8` | 6/8 (75%)   | 8/8 (100%)  | 1/8     | 1/8      | 0/8    | $2.97                 | 4.4s               | [context set] Baseline for the tool-calling comparison                                                                                |
+| 2026-11-05 21:01 | claude-haiku-4-5 | `93e95527` | 6/8 (75%) | 8/8 (100%) | 1/8 | 1/8 | 0/8 | $7.18 | 6.5s | [context set, tools] (lookups on 8/8) Tool calling: repeat |
+| 2026-11-05 21:05 | claude-haiku-4-5 | `93e95527` | 5/8 (62%) | 8/8 (100%) | 1/8 | 2/8 | 0/8 | $7.84 | 7.0s | [context set, tools] (lookups on 8/8) Tool calling: repeat |
+| 2026-11-05 21:06 | claude-haiku-4-5 | `93e95527` | 7/8 (88%) | 8/8 (100%) | 0/8 | 1/8 | 0/8 | $8.49 | 7.5s | [context set, tools] (lookups on 8/8) Tool calling: repeat |
+| 2026-11-05 21:07 | claude-haiku-4-5 | `53fd66d8` | 7/8 (88%) | 8/8 (100%) | 0/8 | 1/8 | 0/8 | $3.00 | 4.5s | [context set] Baseline: repeat |
+| 2026-11-05 21:08 | claude-haiku-4-5 | `53fd66d8` | 6/8 (75%) | 8/8 (100%) | 1/8 | 1/8 | 0/8 | $3.04 | 4.4s | [context set] Baseline: repeat |
+| 2026-11-05 21:09 | claude-haiku-4-5 | `53fd66d8` | 7/8 (88%) | 8/8 (100%) | 0/8 | 1/8 | 0/8 | $3.05 | 4.5s | [context set] Baseline: repeat |
