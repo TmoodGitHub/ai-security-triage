@@ -3,6 +3,8 @@ import {
   apiFetch,
   type CurrentUser,
   type Filters,
+  type ReviewStatus,
+  type Sort,
 } from './api';
 import {
   congitoEnabled,
@@ -12,6 +14,7 @@ import {
 } from './auth';
 import FindingDetail from './FindingDetail';
 import FindingsList from './FindingsList';
+import Sidebar from './Sidebar';
 import SignIn from './SignIn';
 import SummaryPanel from './SummaryPanel';
 import { useDatabaseWaking } from './useDatabaseWaking';
@@ -33,6 +36,10 @@ export default function App() {
   const [filters, setFilters] = useState<Filters>({
     severity: '',
     status: 'pending',
+  });
+  const [sort, setSort] = useState<Sort>({
+    column: 'severity',
+    order: 'desc',
   });
   const [selectedId, setselectedId] = useState<
     string | null
@@ -87,6 +94,12 @@ export default function App() {
     setUser(newUser);
   }
 
+  function selectQueue(status: ReviewStatus | '') {
+    setFilters({ severity: '', status });
+    setselectedId(null);
+    setLastViewedId(null);
+  }
+
   function closeFinding() {
     setLastViewedId(selectedId);
     setselectedId(null);
@@ -101,18 +114,14 @@ export default function App() {
   }
 
   return (
-    <>
-      <header className='topbar'>
-        <div className='topbar-inner'>
-          <h1>Security findings</h1>
-          {user && (
-            <p>Signed in as {user.name ?? user.subject}</p>
-          )}
-          <button type='button' onClick={signOut}>
-            Sign out
-          </button>
-        </div>
-      </header>
+    <div className='app-shell'>
+      <Sidebar
+        user={user}
+        activeStatus={filters.status}
+        onSelectQueue={selectQueue}
+        onSignOut={signOut}
+      />
+
       <main>
         <p role='status' className='waking'>
           {databaseWaking &&
@@ -129,6 +138,8 @@ export default function App() {
             <FindingsList
               token={token}
               filters={filters}
+              sort={sort}
+              onSortChange={setSort}
               focusId={lastViewedId}
               onFilterChange={setFilters}
               onSelect={setselectedId}
@@ -145,6 +156,6 @@ export default function App() {
           />
         )}
       </main>
-    </>
+    </div>
   );
 }

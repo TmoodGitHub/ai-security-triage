@@ -87,8 +87,8 @@ export default function FindingDetail({
       )}
 
       {finding && (
-        <>
-          <div className='panel'>
+        <div className='detail-layout'>
+          <div className='panel detail-summary'>
             <h2
               id='detail-heading'
               ref={headingRef}
@@ -124,7 +124,7 @@ export default function FindingDetail({
             </dl>
           </div>
 
-          <div className='panel'>
+          <div className='panel detail-ai'>
             <h3>Why the AI chose this severity</h3>
             <p>{finding.reasoning}</p>
 
@@ -147,7 +147,7 @@ export default function FindingDetail({
             )}
           </div>
 
-          <div className='panel'>
+          <div className='panel detail-review'>
             <h3 ref={reviewHeadingRef} tabIndex={-1}>
               Review
             </h3>
@@ -188,13 +188,13 @@ export default function FindingDetail({
             )}
           </div>
 
-          <details className='panel'>
+          <details className='panel detail-raw'>
             <summary>Raw CloudTrail event</summary>
             <pre>
               {JSON.stringify(finding.event, null, 2)}
             </pre>
           </details>
-        </>
+        </div>
       )}
     </section>
   );

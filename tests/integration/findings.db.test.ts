@@ -119,6 +119,26 @@ describe('GET /findings (needs the database running)', () => {
     expect(names).toEqual(['DeleteTrail', 'ConsoleLogin']);
   });
 
+  it('sorts by the column and direction asked for', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/findings?sort=eventTime&order=asc',
+      headers,
+    });
+
+    expect(response.statusCode).toBe(200);
+    const names = response
+      .json()
+      .findings.map(
+        (f: { eventName: string }) => f.eventName,
+      );
+    expect(names).toEqual([
+      'ListBuckets',
+      'ConsoleLogin',
+      'DeleteTrail',
+    ]);
+  });
+
   it('applies the limit', async () => {
     const response = await app.inject({
       method: 'GET',

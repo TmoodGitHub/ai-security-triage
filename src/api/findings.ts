@@ -4,10 +4,34 @@ import type { Db } from '../db/types.js';
 const SEVERITIES = ['low', 'medium', 'high', 'critical'];
 const REVIEW_STATUSES = ['pending', 'approved', 'rejected'];
 
+const SORT_COLUMNS = {
+  severity:
+    "CASE f.severity WHEN 'critical' THEN 4 WHEN 'high' THEN 3 WHEN 'medium' THEN 2 ELSE 1 END",
+  eventTime: 'e.event_time',
+  eventName: 'e.event_name',
+  who: 'COALESCE(e.user_name, e.user_arn, e.user_type)',
+  status: 'f.review_status',
+} as const;
+
+type SortColumn = keyof typeof SORT_COLUMNS;
+
 interface ListFindingsQuery {
   severity?: string;
   status?: string;
   limit: number;
+  sort: SortColumn;
+  order: 'asc' | 'desc';
+}
+
+function listFindingsSql(
+  sort: SortColumn,
+  order: 'asc' | 'desc',
+) {
+  const direction = order === 'asc' ? 'ASC' : 'DESC';
+  return LIST_FINDINGS.replace(
+    '-- ORDER BY --',
+    `${SORT_COLUMNS[sort]} ${direction}, f.created_at DESC, f.id DESC`,
+  );
 }
 
 const LIST_FINDINGS = `
@@ -28,9 +52,7 @@ const LIST_FINDINGS = `
     JOIN events e ON e.event_id = f.event_id
     WHERE ($1::text IS NULL OR f.severity = $1)
         AND ($2::text IS NULL OR f.review_status = $2)
-    ORDER BY
-        CASE f.severity WHEN 'critical' THEN 4 WHEN 'high' THEN 3 WHEN 'medium' THEN 2 ELSE 1 END DESC,
-        f.created_at DESC
+    ORDER BY -- ORDER BY --
     LIMIT $3
 `;
 
@@ -119,18 +141,28 @@ export function registerFindingsRoutes(
               maximum: 200,
               default: 50,
             },
+            sort: {
+              type: 'string',
+              enum: Object.keys(SORT_COLUMNS),
+              default: 'severity',
+            },
+            order: {
+              type: 'string',
+              enum: ['asc', 'desc'],
+              default: 'desc',
+            },
           },
           additionalProperties: false,
         },
       },
     },
     async (request) => {
-      const { severity, status, limit } = request.query;
-      const result = await db.query(LIST_FINDINGS, [
-        severity ?? null,
-        status ?? null,
-        limit,
-      ]);
+      const { severity, status, limit, sort, order } =
+        request.query;
+      const result = await db.query(
+        listFindingsSql(sort, order),
+        [severity ?? null, status ?? null, limit],
+      );
       return { findings: result.rows };
     },
   );

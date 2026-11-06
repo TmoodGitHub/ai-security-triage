@@ -110,6 +110,18 @@ export interface Filters {
   status: ReviewStatus | '';
 }
 
+export type SortColumn =
+  | 'severity'
+  | 'eventName'
+  | 'who'
+  | 'eventTime'
+  | 'status';
+
+export interface Sort {
+  column: SortColumn;
+  order: 'asc' | 'desc';
+}
+
 export interface FindingSummary {
   id: string;
   severity: Severity;

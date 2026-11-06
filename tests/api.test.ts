@@ -160,6 +160,26 @@ describe('request validation', () => {
     expect(response.statusCode).toBe(400);
   });
 
+  it('rejects a sort column that is not allowed', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/findings?sort=raw',
+      headers,
+    });
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('rejects a sort direction that is not asc or desc', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/findings?order=sideways',
+      headers,
+    });
+
+    expect(response.statusCode).toBe(400);
+  });
+
   it('rejects a finding id that is not a number', async () => {
     const response = await app.inject({
       method: 'GET',

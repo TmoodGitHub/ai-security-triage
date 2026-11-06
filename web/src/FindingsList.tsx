@@ -6,12 +6,38 @@ import {
   type FindingSummary,
   type ReviewStatus,
   type Severity,
+  type Sort,
+  type SortColumn,
 } from './api';
 import { usePageTitle } from './usePageTitle';
+
+const COLUMNS: {
+  label: string;
+  sort?: SortColumn;
+  firstOrder?: Sort['order'];
+}[] = [
+  {
+    label: 'Severity',
+    sort: 'severity',
+    firstOrder: 'desc',
+  },
+  { label: 'Summary' },
+  { label: 'Event', sort: 'eventName', firstOrder: 'asc' },
+  { label: 'Who', sort: 'who', firstOrder: 'asc' },
+  { label: 'Source IP' },
+  {
+    label: 'Event time',
+    sort: 'eventTime',
+    firstOrder: 'desc',
+  },
+  { label: 'Status', sort: 'status', firstOrder: 'asc' },
+];
 
 interface FindingListProps {
   token: string;
   filters: Filters;
+  sort: Sort;
+  onSortChange: (sort: Sort) => void;
   focusId: string | null;
   onFilterChange: (filters: Filters) => void;
   onSelect: (id: string) => void;
@@ -21,6 +47,8 @@ interface FindingListProps {
 export default function FindingsList({
   token,
   filters,
+  sort,
+  onSortChange,
   focusId,
   onFilterChange,
   onSelect,
@@ -30,7 +58,23 @@ export default function FindingsList({
   const params = new URLSearchParams();
   if (severity) params.set('severity', severity);
   if (status) params.set('status', status);
+  params.set('sort', sort.column);
+  params.set('order', sort.order);
   const query = params.toString();
+
+  function sortBy(
+    column: SortColumn,
+    firstOrder: Sort['order'],
+  ) {
+    if (sort.column === column) {
+      onSortChange({
+        column,
+        order: sort.order === 'asc' ? 'desc' : 'asc',
+      });
+    } else {
+      onSortChange({ column, order: firstOrder });
+    }
+  }
 
   const [result, setResult] = useState<{
     query: string;
@@ -172,13 +216,53 @@ export default function FindingsList({
           <table className='findings-table'>
             <thead>
               <tr>
-                <th scope='col'>Severity</th>
-                <th scope='col'>Summary</th>
-                <th scope='col'>Event</th>
-                <th scope='col'>Who</th>
-                <th scope='col'>Source IP</th>
-                <th scope='col'>Event time</th>
-                <th scope='col'>Status</th>
+                {COLUMNS.map((column) => {
+                  if (!column.sort) {
+                    return (
+                      <th key={column.label} scope='col'>
+                        {column.label}
+                      </th>
+                    );
+                  }
+                  const active =
+                    sort.column === column.sort;
+                  return (
+                    <th
+                      key={column.label}
+                      scope='col'
+                      aria-sort={
+                        active
+                          ? sort.order === 'asc'
+                            ? 'ascending'
+                            : 'descending'
+                          : undefined
+                      }
+                    >
+                      <button
+                        type='button'
+                        className='sort-button'
+                        onClick={() =>
+                          sortBy(
+                            column.sort!,
+                            column.firstOrder ?? 'asc',
+                          )
+                        }
+                      >
+                        {column.label}
+                        <span
+                          className='sort-arrow'
+                          aria-hidden='true'
+                        >
+                          {active
+                            ? sort.order === 'asc'
+                              ? '▲'
+                              : '▼'
+                            : '↕'}
+                        </span>
+                      </button>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
