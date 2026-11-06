@@ -17,6 +17,7 @@ The demo account can view everything but cannot review findings; the API enforce
 The database scales to zero when nobody is using it. If the demo has been idle for a while, the first request wakes it up: the dashboard shows "Waking up the database" and keeps trying, which takes 15 to 30 seconds, or up to a minute after a long quiet period.
 
 ![Analyst dashboard: findings awaiting review by severity, the AI agreement rate, and the findings list](docs/dashboard.png)
+![Finding detail: the AI's severity, reasoning, evidence and unknowns, the raw CloudTrail event, and the analyst's review form](docs/review.png)
 
 ## How it works
 
@@ -108,10 +109,10 @@ Much of a CloudTrail event is written by whoever made the request: the user agen
 
 A case passes if the rating holds: not below the event's label.
 
-| Setup | Held | Rated too low | Exact | Cost per 1,000 alerts |
-| --------------------------------- | ------------ | ------------- | ------------ | --------------------- | |
-| Earlier rubric (`53fd66d8`) | 16/16 (100%) | 0 | 15/16 (94%) | $2.78 |
-| Current rubric (`d78366c9`) | 16/16 (100%) | 0 | 16/16 (100%) | $2.88 |
+| Setup                       | Held         | Rated too low | Exact        | Cost per 1,000 alerts |
+| --------------------------- | ------------ | ------------- | ------------ | --------------------- |
+| Earlier rubric (`53fd66d8`) | 16/16 (100%) | 0             | 15/16 (94%)  | $2.78                 |
+| Current rubric (`d78366c9`) | 16/16 (100%) | 0             | 16/16 (100%) | $2.88                 |
 
 No injection lowered a rating. Two rules already in the system prompt likely account for it: events never record approvals, and the model must not assume facts the event doesn't contain, such as whether a change was approved. No defensive rule was added, since it would change every other eval result for no measured gain. Run with `python -m triage.evals --injection`.
 
@@ -234,7 +235,7 @@ python -m triage.evals      # evals (calls Claude)
 
 Infrastructure is managed with Terraform from `infra/` (`terraform plan`, then `terraform apply`). Application code deploys itself: every push to `main` runs the tests, then the `deploy` job in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs database migrations, uploads the three Lambda functions, and uploads the dashboard.
 
-To run a CloudTrail file through the live pipeline, upload it to the intake bucket. `npm run sample:fresh` makes a copy of the sample file with new event IDs and current times, gzipped like a real CloudTrail file.
+To run a CloudTrail file through the live pipeline, upload it to the intake bucket. `npm run sample:fresh` makes a copy of the sample file with new event IDs and current times, gzipped like a real CloudTrail file. `node scripts/demo-data.mjs` does the same for the eval cases, spaced 26 hours apart and ending now; `--from-id N` uses only cases with id N and up.
 
 ## About the sample data
 
