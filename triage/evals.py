@@ -204,11 +204,11 @@ def run_evals(
         
 
 
-def prompt_fingerprint() -> str:
+def prompt_fingerprint(tools: bool = False) -> str:
     text = SYSTEM_PROMPT
     if tools:
         text += TOOLS_PROMPT + json.dumps(TOOLS, sort_keys=True)
-        return hashlib.sha256(text.encode("utf-8")).hexdigest()[:8]
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:8]
 
 
 def append_to_log(run: EvalRun, note: str, tools: bool = False) -> None:
