@@ -8,10 +8,20 @@ import { gzipSync } from 'node:zlib';
 
 const SPACING_MS = 26 * 60 * 60 * 1000;
 
-const input = process.argv[2] ?? 'triage/eval_cases.json';
+const args = process.argv.slice(2);
+const fromIdAt = args.indexOf('--from-id');
+const fromId =
+  fromIdAt === -1
+    ? null
+    : Number(args.splice(fromIdAt, 2)[1]);
+
+const input = args[0] ?? 'triage/eval_cases.json';
 const parsed = JSON.parse(readFileSync(input, 'utf8'));
+
 const source = Array.isArray(parsed)
-  ? parsed.map((c) => c.event)
+  ? parsed
+      .filter((c) => fromId === null || c.id >= fromId)
+      .map((c) => c.event)
   : parsed.Records;
 
 const events = [...source].sort(
