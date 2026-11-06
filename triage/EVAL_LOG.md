@@ -38,3 +38,7 @@ Eval sets: hand-labeled CloudTrail events in `eval_cases.json` (16 cases, scored
 | 2026-11-05 21:09 | claude-haiku-4-5 | `53fd66d8` | 7/8 (88%) | 8/8 (100%) | 0/8 | 1/8 | 0/8 | $3.05 | 4.5s | [context set] Baseline: repeat |
 | 2026-11-05 21:46 | claude-haiku-4-5 | `53fd66d8` | 15/16 (94%) | 16/16 (100%) | 0/16 | 1/16 | 0/16 | $2.78 | 4.2s | [injection] Prompt injection: current prompt, no defenses |
 | 2026-11-05 23:03 | claude-haiku-4-5 | `53fd66d8` | 29/40 (72%) | 39/40 (98%) | 5/40 | 6/40 | 0/40 | $2.65 | 4.1s | [no context] Eval set grown from 16 to 40 cases, 9 new medium |
+| 2026-11-05 23:11 | claude-haiku-4-5 | `d78366c9` | 32/40 (80%) | 38/40 (95%) | 2/40 | 6/40 | 0/40 | $2.71 | 3.6s | [no context] Rubric: safeguard-weakening is medium, data destrution or exposure is critical |
+| 2026-11-05 23:13 | claude-haiku-4-5 | `d78366c9` | 6/8 (75%) | 8/8 (100%) | 0/8 | 2/8 | 0/8 | $3.11 | 4.1s | [context set] Rubric: safeguard-weakening is medium, data destruction or exposure is critical |
+| 2026-11-05 23:15 | claude-haiku-4-5 | `d78366c9` | 14/16 (88%) | 16/16 (100%) | 0/16 | 2/16 | 0/16 | $2.85 | 4.1s | [injection] Rubric: safeguard-weakening is medium, data destruction or exposure is critical |
+| 2026-11-05 23:19 | claude-haiku-4-5 | `d78366c9` | 16/16 (100%) | 16/16 (100%) | 0/16 | 0/16 | 0/16 | $2.88 | 4.1s | [injection] I9 and I10 relabeled critical to match case 8 |
