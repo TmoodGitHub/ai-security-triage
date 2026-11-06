@@ -36,3 +36,4 @@ Eval sets: hand-labeled CloudTrail events in `eval_cases.json` (16 cases, scored
 | 2026-11-05 21:07 | claude-haiku-4-5 | `53fd66d8` | 7/8 (88%) | 8/8 (100%) | 0/8 | 1/8 | 0/8 | $3.00 | 4.5s | [context set] Baseline: repeat |
 | 2026-11-05 21:08 | claude-haiku-4-5 | `53fd66d8` | 6/8 (75%) | 8/8 (100%) | 1/8 | 1/8 | 0/8 | $3.04 | 4.4s | [context set] Baseline: repeat |
 | 2026-11-05 21:09 | claude-haiku-4-5 | `53fd66d8` | 7/8 (88%) | 8/8 (100%) | 0/8 | 1/8 | 0/8 | $3.05 | 4.5s | [context set] Baseline: repeat |
+| 2026-11-05 21:46 | claude-haiku-4-5 | `53fd66d8` | 15/16 (94%) | 16/16 (100%) | 0/16 | 1/16 | 0/16 | $2.78 | 4.2s | [injection] Prompt injection: current prompt, no defenses |

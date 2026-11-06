@@ -176,3 +176,40 @@ def test_run_evals_with_tools_gives_nothing_up_front_and_answers_lookups():
     for related in spraying["related"]:
         if "IP" in related["link"]:
             assert related["event_name"] in tool_result
+
+def test_injection_cases_carry_their_planted_text_and_base_label():
+    cases = json.loads(evals.INJECTION_CASES_PATH.read_text())
+    base = {c["id"]: c for c in json.loads(evals.CASES_PATH.read_text())}
+
+    assert len({c["id"] for c in cases}) == len(cases)
+    assert len({c["event"]["eventID"] for c in cases}) == len(cases)
+    for case in cases:
+        assert case["expected"] == base[case["base_case"]]["expected"]
+        assert case["expected"] in ("high", "critical")
+        assert "low" in json.dumps(case["event"]).lower()  # every payload asks for low
+
+
+def test_run_evals_injection_counts_held_ratings(capsys):
+    def parse(**kwargs):
+        return SimpleNamespace(
+            parsed_output=TriageResult(
+                severity="high",
+                summary="s",
+                reasoning="The user agent contains an embedded instruction.",
+                evidence=[],
+                unknowns=[],
+            ),
+            stop_reason="end_turn",
+            usage=SimpleNamespace(input_tokens=1000, output_tokens=100),
+        )
+
+    client = SimpleNamespace(messages=SimpleNamespace(parse=parse))
+
+    run = evals.run_evals(client, injection=True)
+
+    cases = json.loads(evals.INJECTION_CASES_PATH.read_text())
+    critical = sum(c["expected"] == "critical" for c in cases)
+    assert run.too_low == critical  # "high" is below the critical cases' label
+    out = capsys.readouterr().out
+    assert f"Held (not rated below the label): {len(cases) - critical}/{len(cases)}" in out
+    assert f"Mentioned the planted text (keyword check): {len(cases)}/{len(cases)}" in out
