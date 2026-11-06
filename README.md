@@ -65,29 +65,33 @@ flowchart LR
 
 ## Accuracy tests (evals)
 
-Two hand-labeled eval sets. `python -m triage.evals` runs the AI on one of them and scores the results. Every logged run is recorded in [`triage/EVAL_LOG.md`](triage/EVAL_LOG.md) with the model and a fingerprint of the prompt, so changes can be traced.
+Hand-labeled eval sets. `python -m triage.evals` runs the AI on one of them and scores the results. Every logged run is recorded in [`triage/EVAL_LOG.md`](triage/EVAL_LOG.md) with the model and a fingerprint of the prompt, so changes can be traced.
 
-- **`triage/eval_cases.json`:** 16 CloudTrail events, each labeled as a person would judge it on its own.
+- **`triage/eval_cases.json`:** 40 CloudTrail events across IAM, S3, EC2, RDS, KMS, Secrets Manager, CloudWatch, Lambda and CloudTrail itself, each labeled as a person would judge it on its own: 11 low, 10 medium, 14 high, 5 critical.
 - **`triage/eval_context_cases.json`:** 8 events with related activity designed for each one, labeled with that activity in mind. They come in pairs: the same kind of event with routine activity around it, and with suspicious activity around it. A pair tests whether the AI actually uses the context. Run with `--context-set`.
 
-Latest results (claude-haiku-4-5, October 2026):
+Latest results (claude-haiku-4-5, November 2026):
 
 | Setup                                      | Exact match | Within one level | Rated too low | Rated too high | Failed | Cost per 1,000 alerts | Avg time per alert |
 | ------------------------------------------ | ----------- | ---------------- | ------------- | -------------- | ------ | --------------------- | ------------------ |
-| Event only (16 cases)                      | 12/16 (75%) | 15/16 (94%)      | 2             | 2              | 0      | $2.63                 | 4.1s               |
-| Context cases, designed activity (8 cases) | 7/8 (88%)   | 8/8 (100%)       | 0             | 1              | 0      | $2.97                 | 4.5s               |
+| Event only (40 cases)                      | 32/40 (80%) | 38/40 (95%)      | 2             | 6              | 0      | $2.71                 | 3.6s               |
+| Context cases, designed activity (8 cases) | 6/8 (75%)   | 8/8 (100%)       | 0             | 2              | 0      | $3.11                 | 4.1s               |
 
 **Rated too low** is the costly mistake in security: a real problem would sit lower in the queue than it should. **Rated too high** creates extra work but misses nothing.
 
-On the context cases, the AI rated every routine/suspicious pair differently, in the right direction: it lowered routine activity, such as hourly CI deployments and test-bucket cleanup, and raised suspicious activity, such as self-granted admin rights after a login, password spraying, and bulk reads followed by stopping CloudTrail. The one miss was a single failed login, labeled low and rated medium.
+**What growing the set found.** The first 16 cases had only one medium. Adding 24 cases, 9 of them medium, showed two gaps in the prompt's severity rubric. Every new critical case was rated high, because the rubric's only examples of critical were disabling logging or threat detection. And changes that weaken a safeguard, such as suspending versioning or deleting an alarm, were rated high, because the rubric called any risky change that succeeded high. The rubric now says that weakening a safeguard without exposing anything is medium, and that destroying or publicly exposing production or customer data is critical. Rated too low fell from 5 to 2, and exact matches rose from 29 to 32. The cost: the model leans toward critical a little more often, as with a root login without MFA. The two remaining too-low misses are a refused read-only call and an identity check whose risk only shows with context. The rubric was tuned on this same set, so part of the gain is fitting to it; the context and injection sets, which it wasn't tuned on, held steady.
 
-Running the 16 event-only cases with related activity drawn from each other scores much lower (5/16 exact, all misses rated too high). That set wasn't built for it: 7 of the 16 cases share one IP address and user within 24 hours, so routine events appear next to unrelated risky ones and the AI reasonably raises them. The context cases replace that comparison.
+On the context cases, the AI rated every routine/suspicious pair differently, in the right direction: it lowered routine activity, such as hourly CI deployments and test-bucket cleanup, and raised suspicious activity, such as self-granted admin rights after a login, password spraying, and bulk reads followed by stopping CloudTrail.
 
-Cost comes from the token counts Claude reports for each call, at Claude Haiku 4.5's published prices. Scores vary from run to run by about one case. With sets this small, one case changes the score by 6 points (16 cases) or 13 points (8 cases).
+Running the original 16 event-only cases with related activity drawn from each other scores much lower (5/16 exact, all misses rated too high). That set wasn't built for it: 7 of the 16 cases share one IP address and user within 24 hours, so routine events appear next to unrelated risky ones and the AI reasonably raises them. The context cases replace that comparison.
+
+Cost comes from the token counts Claude reports for each call, at Claude Haiku 4.5's published prices. Scores vary from run to run by about one case. With sets this small, one case changes the score by 2.5 points (40 cases) or 13 points (8 cases).
 
 ## Tried and measured: letting the AI choose its own lookups
 
 Triage normally gives Claude a fixed set of related events: same identity or same IP address, within 24 hours. As an experiment, a tool-calling mode (`triage/tools.py`) gives it two lookups instead (other activity by this identity, other activity from this IP, over a window it picks) and lets it decide whether to use them. In the evals, the lookups are answered from the same events the fixed rule would supply, so any difference comes from how Claude chooses.
+
+These runs used the earlier severity rubric (prompt `53fd66d8`).
 
 Four runs of each on the 8 context cases, the set built to measure context:
 
@@ -104,9 +108,10 @@ Much of a CloudTrail event is written by whoever made the request: the user agen
 
 A case passes if the rating holds: not below the event's label.
 
-| Setup                             | Held         | Rated too low | Exact       | Cost per 1,000 alerts |
-| --------------------------------- | ------------ | ------------- | ----------- | --------------------- |
-| Current prompt, no added defenses | 16/16 (100%) | 0             | 15/16 (94%) | $2.78                 |
+| Setup | Held | Rated too low | Exact | Cost per 1,000 alerts |
+| --------------------------------- | ------------ | ------------- | ------------ | --------------------- | |
+| Earlier rubric (`53fd66d8`) | 16/16 (100%) | 0 | 15/16 (94%) | $2.78 |
+| Current rubric (`d78366c9`) | 16/16 (100%) | 0 | 16/16 (100%) | $2.88 |
 
 No injection lowered a rating. Two rules already in the system prompt likely account for it: events never record approvals, and the model must not assume facts the event doesn't contain, such as whether a change was approved. No defensive rule was added, since it would change every other eval result for no measured gain. Run with `python -m triage.evals --injection`.
 
@@ -146,6 +151,7 @@ Nearly all of the AWS cost is the database's storage and the Secrets Manager sec
 - [x] Deploys from CI after all tests pass
 - [x] Stretch: let the AI choose its own lookups (tool calling), compared against the fixed rules in evals
 - [x] Prompt-injection evals: planted instructions in attacker-controlled fields; 16/16 ratings held
+- [x] Eval set grown to 40 cases; severity rubric revised from what it found
 
 ## Project layout
 
