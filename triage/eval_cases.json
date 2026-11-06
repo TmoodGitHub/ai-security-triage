@@ -539,5 +539,930 @@
       "errorCode": "AccessDenied",
       "errorMessage": "User: arn:aws:iam::123456789012:user/backup-svc is not authorized to perform: iam:CreateUser on resource: arn:aws:iam::123456789012:user/support-admin because no identity-based policy allows the iam:CreateUser action"
     }
+  },
+  {
+    "id": 17,
+    "expected": "low",
+    "note": "Application role reading its own database credentials, as it does at every start.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "AROAEXAMPLEAPPAPI001:app-api",
+        "arn": "arn:aws:sts::123456789012:assumed-role/app-api-role/app-api",
+        "accountId": "123456789012",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "principalId": "AROAEXAMPLEAPPAPI001",
+            "arn": "arn:aws:iam::123456789012:role/app-api-role",
+            "accountId": "123456789012",
+            "userName": "app-api-role"
+          }
+        }
+      },
+      "eventTime": "2026-10-01T14:12:08Z",
+      "eventSource": "secretsmanager.amazonaws.com",
+      "eventName": "GetSecretValue",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "AWS Internal",
+      "userAgent": "AWS Internal",
+      "requestParameters": {
+        "secretId": "prod/app-api/db"
+      },
+      "responseElements": null,
+      "eventID": "eval-17-0000-4000-8000-000000000017",
+      "readOnly": true,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 18,
+    "expected": "low",
+    "note": "Scheduled backup job writing the nightly database dump to the backups bucket.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "AROAEXAMPLEBACKUPJ01:nightly-backup",
+        "arn": "arn:aws:sts::123456789012:assumed-role/backup-automation-role/nightly-backup",
+        "accountId": "123456789012",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "principalId": "AROAEXAMPLEBACKUPJ01",
+            "arn": "arn:aws:iam::123456789012:role/backup-automation-role",
+            "accountId": "123456789012",
+            "userName": "backup-automation-role"
+          }
+        }
+      },
+      "eventTime": "2026-10-03T02:00:41Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "AWS Internal",
+      "userAgent": "AWS Internal",
+      "requestParameters": {
+        "bucketName": "company-backups",
+        "key": "nightly/2026-10-03/app-db.dump.gz"
+      },
+      "responseElements": null,
+      "eventID": "eval-18-0000-4000-8000-000000000018",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Data",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 19,
+    "expected": "low",
+    "note": "Lambda function creating its log stream, which happens on every cold start.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "AROAEXAMPLETHUMB0001:thumbnailer",
+        "arn": "arn:aws:sts::123456789012:assumed-role/thumbnailer-role/thumbnailer",
+        "accountId": "123456789012",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "principalId": "AROAEXAMPLETHUMB0001",
+            "arn": "arn:aws:iam::123456789012:role/thumbnailer-role",
+            "accountId": "123456789012",
+            "userName": "thumbnailer-role"
+          }
+        }
+      },
+      "eventTime": "2026-10-05T10:31:55Z",
+      "eventSource": "logs.amazonaws.com",
+      "eventName": "CreateLogStream",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "AWS Internal",
+      "userAgent": "AWS Internal",
+      "requestParameters": {
+        "logGroupName": "/aws/lambda/thumbnailer",
+        "logStreamName": "2026/10/05/[$LATEST]4f1c2a9e8b7d6c5e4f3a2b1c0d9e8f7a"
+      },
+      "responseElements": null,
+      "eventID": "eval-19-0000-4000-8000-000000000019",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 20,
+    "expected": "low",
+    "note": "Developer signed in with MFA listing database instances: a successful read-only call.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEMGARCIA01",
+        "arn": "arn:aws:iam::123456789012:user/mgarcia",
+        "accountId": "123456789012",
+        "userName": "mgarcia",
+        "sessionContext": {
+          "attributes": {
+            "mfaAuthenticated": "true"
+          }
+        }
+      },
+      "eventTime": "2026-10-06T15:20:33Z",
+      "eventSource": "rds.amazonaws.com",
+      "eventName": "DescribeDBInstances",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.101",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "requestParameters": null,
+      "responseElements": null,
+      "eventID": "eval-20-0000-4000-8000-000000000020",
+      "readOnly": true,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 21,
+    "expected": "low",
+    "note": "Release pipeline deploying new code to the application function: a normal deployment.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "AROAEXAMPLERELEASE01:release-4812",
+        "arn": "arn:aws:sts::123456789012:assumed-role/release-pipeline-role/release-4812",
+        "accountId": "123456789012",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "principalId": "AROAEXAMPLERELEASE01",
+            "arn": "arn:aws:iam::123456789012:role/release-pipeline-role",
+            "accountId": "123456789012",
+            "userName": "release-pipeline-role"
+          }
+        }
+      },
+      "eventTime": "2026-10-07T16:05:12Z",
+      "eventSource": "lambda.amazonaws.com",
+      "eventName": "UpdateFunctionCode20150331v2",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.101",
+      "userAgent": "Boto3/1.35.10 md/Botocore#1.35.10 ua/2.0 os/linux lang/python#3.12.3",
+      "requestParameters": {
+        "functionName": "app-api",
+        "s3Bucket": "company-build-artifacts",
+        "s3Key": "app-api/release-4812.zip",
+        "publish": true
+      },
+      "responseElements": null,
+      "eventID": "eval-21-0000-4000-8000-000000000021",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 22,
+    "expected": "low",
+    "note": "Maintenance role taking a manual database snapshot: adds a backup, removes nothing.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "AROAEXAMPLEDBMAINT01:weekly-snapshot",
+        "arn": "arn:aws:sts::123456789012:assumed-role/db-maintenance-role/weekly-snapshot",
+        "accountId": "123456789012",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "principalId": "AROAEXAMPLEDBMAINT01",
+            "arn": "arn:aws:iam::123456789012:role/db-maintenance-role",
+            "accountId": "123456789012",
+            "userName": "db-maintenance-role"
+          }
+        }
+      },
+      "eventTime": "2026-10-09T05:00:03Z",
+      "eventSource": "rds.amazonaws.com",
+      "eventName": "CreateDBSnapshot",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "AWS Internal",
+      "userAgent": "AWS Internal",
+      "requestParameters": {
+        "dBSnapshotIdentifier": "app-db-weekly-2026-10-09",
+        "dBInstanceIdentifier": "app-db"
+      },
+      "responseElements": null,
+      "eventID": "eval-22-0000-4000-8000-000000000022",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 23,
+    "expected": "medium",
+    "note": "Public access block removed from a marketing assets bucket: may be intended for a public site, but removes the guard against accidental exposure, so it should be checked.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEKWONG0001",
+        "arn": "arn:aws:iam::123456789012:user/kwong",
+        "accountId": "123456789012",
+        "userName": "kwong",
+        "sessionContext": {
+          "attributes": {
+            "mfaAuthenticated": "true"
+          }
+        }
+      },
+      "eventTime": "2026-10-10T14:40:19Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeletePublicAccessBlock",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.102",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "requestParameters": {
+        "bucketName": "marketing-site-assets",
+        "publicAccessBlock": ""
+      },
+      "responseElements": null,
+      "eventID": "eval-23-0000-4000-8000-000000000023",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 24,
+    "expected": "medium",
+    "note": "Port 8080 opened to the internet, described as temporary staging access: a risky shortcut, not a production database.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEPNAIR0001",
+        "arn": "arn:aws:iam::123456789012:user/pnair",
+        "accountId": "123456789012",
+        "userName": "pnair"
+      },
+      "eventTime": "2026-10-11T17:15:44Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "AuthorizeSecurityGroupIngress",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.103",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Linux/6.8.0",
+      "requestParameters": {
+        "groupId": "sg-08080abcdef1234567",
+        "ipPermissions": {
+          "items": [
+            {
+              "ipProtocol": "tcp",
+              "fromPort": 8080,
+              "toPort": 8080,
+              "ipRanges": {
+                "items": [
+                  {
+                    "cidrIp": "0.0.0.0/0",
+                    "description": "temp access for staging demo"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "responseElements": {
+        "_return": true
+      },
+      "eventID": "eval-24-0000-4000-8000-000000000024",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 25,
+    "expected": "medium",
+    "note": "Versioning suspended on a log archive bucket: deleted or overwritten logs could no longer be recovered.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEDCHEN0001",
+        "arn": "arn:aws:iam::123456789012:user/dchen",
+        "accountId": "123456789012",
+        "userName": "dchen",
+        "sessionContext": {
+          "attributes": {
+            "mfaAuthenticated": "true"
+          }
+        }
+      },
+      "eventTime": "2026-10-12T11:02:27Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutBucketVersioning",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.104",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "requestParameters": {
+        "bucketName": "app-logs-archive",
+        "VersioningConfiguration": {
+          "Status": "Suspended"
+        },
+        "versioning": ""
+      },
+      "responseElements": null,
+      "eventID": "eval-25-0000-4000-8000-000000000025",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 26,
+    "expected": "medium",
+    "note": "Successful console login without MFA by a regular user during the workday: a policy gap to follow up, with no sign of compromise.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLERPATEL001",
+        "arn": "arn:aws:iam::123456789012:user/rpatel",
+        "accountId": "123456789012",
+        "userName": "rpatel"
+      },
+      "eventTime": "2026-10-13T13:47:02Z",
+      "eventSource": "signin.amazonaws.com",
+      "eventName": "ConsoleLogin",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.105",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "requestParameters": null,
+      "responseElements": {
+        "ConsoleLogin": "Success"
+      },
+      "eventID": "eval-26-0000-4000-8000-000000000026",
+      "readOnly": false,
+      "eventType": "AwsConsoleSignIn",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012",
+      "additionalEventData": {
+        "MFAUsed": "No",
+        "LoginTo": "https://console.aws.amazon.com/console/home"
+      }
+    }
+  },
+  {
+    "id": 27,
+    "expected": "medium",
+    "note": "Developer refused access to the production payments API key: likely a mistake, but the target is sensitive.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLELKIM00001",
+        "arn": "arn:aws:iam::123456789012:user/lkim",
+        "accountId": "123456789012",
+        "userName": "lkim"
+      },
+      "eventTime": "2026-10-14T10:20:51Z",
+      "eventSource": "secretsmanager.amazonaws.com",
+      "eventName": "GetSecretValue",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.106",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Linux/6.8.0",
+      "requestParameters": {
+        "secretId": "prod/payments/processor-api-key"
+      },
+      "responseElements": null,
+      "eventID": "eval-27-0000-4000-8000-000000000027",
+      "readOnly": true,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012",
+      "errorCode": "AccessDenied",
+      "errorMessage": "User: arn:aws:iam::123456789012:user/lkim is not authorized to perform: secretsmanager:GetSecretValue on resource: prod/payments/processor-api-key"
+    }
+  },
+  {
+    "id": 28,
+    "expected": "medium",
+    "note": "Automated backups turned off on the staging database: data loss risk outside production.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLETBROWN001",
+        "arn": "arn:aws:iam::123456789012:user/tbrown",
+        "accountId": "123456789012",
+        "userName": "tbrown",
+        "sessionContext": {
+          "attributes": {
+            "mfaAuthenticated": "true"
+          }
+        }
+      },
+      "eventTime": "2026-10-15T15:55:36Z",
+      "eventSource": "rds.amazonaws.com",
+      "eventName": "ModifyDBInstance",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.107",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "requestParameters": {
+        "dBInstanceIdentifier": "staging-db",
+        "backupRetentionPeriod": 0,
+        "applyImmediately": true
+      },
+      "responseElements": null,
+      "eventID": "eval-28-0000-4000-8000-000000000028",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 29,
+    "expected": "medium",
+    "note": "Production API logs set to be kept for only 7 days: reduces how far back an investigation can look.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLESALI00001",
+        "arn": "arn:aws:iam::123456789012:user/sali",
+        "accountId": "123456789012",
+        "userName": "sali"
+      },
+      "eventTime": "2026-10-16T12:10:09Z",
+      "eventSource": "logs.amazonaws.com",
+      "eventName": "PutRetentionPolicy",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.108",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Linux/6.8.0",
+      "requestParameters": {
+        "logGroupName": "/aws/lambda/prod-api",
+        "retentionInDays": 7
+      },
+      "responseElements": null,
+      "eventID": "eval-29-0000-4000-8000-000000000029",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 30,
+    "expected": "medium",
+    "note": "Help desk reset another user's password, requiring a change at next login: routine support, but also a way to take over an account.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEHELPDESK1",
+        "arn": "arn:aws:iam::123456789012:user/it-helpdesk",
+        "accountId": "123456789012",
+        "userName": "it-helpdesk",
+        "sessionContext": {
+          "attributes": {
+            "mfaAuthenticated": "true"
+          }
+        }
+      },
+      "eventTime": "2026-10-17T09:40:58Z",
+      "eventSource": "iam.amazonaws.com",
+      "eventName": "UpdateLoginProfile",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.109",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "requestParameters": {
+        "userName": "ojones",
+        "passwordResetRequired": true
+      },
+      "responseElements": null,
+      "eventID": "eval-30-0000-4000-8000-000000000030",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 31,
+    "expected": "medium",
+    "note": "Production error-rate alarm deleted by a developer: outages would go unnoticed until it is restored.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEJMORRIS01",
+        "arn": "arn:aws:iam::123456789012:user/jmorris",
+        "accountId": "123456789012",
+        "userName": "jmorris"
+      },
+      "eventTime": "2026-10-18T14:25:30Z",
+      "eventSource": "monitoring.amazonaws.com",
+      "eventName": "DeleteAlarms",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.110",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Linux/6.8.0",
+      "requestParameters": {
+        "alarmNames": [
+          "prod-api-5xx-high"
+        ]
+      },
+      "responseElements": null,
+      "eventID": "eval-31-0000-4000-8000-000000000031",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 32,
+    "expected": "high",
+    "note": "PostgreSQL port opened to the entire internet.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEHGREEN001",
+        "arn": "arn:aws:iam::123456789012:user/hgreen",
+        "accountId": "123456789012",
+        "userName": "hgreen"
+      },
+      "eventTime": "2026-10-19T16:40:12Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "AuthorizeSecurityGroupIngress",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.111",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Linux/6.8.0",
+      "requestParameters": {
+        "groupId": "sg-05432abcdef1234567",
+        "ipPermissions": {
+          "items": [
+            {
+              "ipProtocol": "tcp",
+              "fromPort": 5432,
+              "toPort": 5432,
+              "ipRanges": {
+                "items": [
+                  {
+                    "cidrIp": "0.0.0.0/0",
+                    "description": "db access"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "responseElements": {
+        "_return": true
+      },
+      "eventID": "eval-32-0000-4000-8000-000000000032",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 33,
+    "expected": "high",
+    "note": "Encryption key scheduled for deletion in 7 days: everything encrypted with it becomes unreadable unless the deletion is cancelled.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "AROAEXAMPLEOPSROLE02:ops-session-mreyes",
+        "arn": "arn:aws:sts::123456789012:assumed-role/ops-role/ops-session-mreyes",
+        "accountId": "123456789012",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "principalId": "AROAEXAMPLEOPSROLE02",
+            "arn": "arn:aws:iam::123456789012:role/ops-role",
+            "accountId": "123456789012",
+            "userName": "ops-role"
+          }
+        }
+      },
+      "eventTime": "2026-10-20T13:30:47Z",
+      "eventSource": "kms.amazonaws.com",
+      "eventName": "ScheduleKeyDeletion",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.102",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Linux/6.8.0",
+      "requestParameters": {
+        "keyId": "arn:aws:kms:us-east-1:123456789012:key/1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+        "pendingWindowInDays": 7
+      },
+      "responseElements": {
+        "keyId": "arn:aws:kms:us-east-1:123456789012:key/1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+        "deletionDate": "Oct 27, 2026, 1:30:47 PM",
+        "keyState": "PendingDeletion",
+        "pendingWindowInDays": 7
+      },
+      "eventID": "eval-33-0000-4000-8000-000000000033",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 34,
+    "expected": "high",
+    "note": "Console password created for a service account that should only use keys: a common way to keep access.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEJWALKER01",
+        "arn": "arn:aws:iam::123456789012:user/jwalker",
+        "accountId": "123456789012",
+        "userName": "jwalker",
+        "sessionContext": {
+          "attributes": {
+            "mfaAuthenticated": "true"
+          }
+        }
+      },
+      "eventTime": "2026-10-21T11:15:26Z",
+      "eventSource": "iam.amazonaws.com",
+      "eventName": "CreateLoginProfile",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.112",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "requestParameters": {
+        "userName": "etl-svc",
+        "passwordResetRequired": false
+      },
+      "responseElements": {
+        "loginProfile": {
+          "userName": "etl-svc",
+          "createDate": "Oct 21, 2026, 11:15:26 AM",
+          "passwordResetRequired": false
+        }
+      },
+      "eventID": "eval-34-0000-4000-8000-000000000034",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 35,
+    "expected": "high",
+    "note": "Service account giving itself full rights on everything through an inline policy.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEETLSVC001",
+        "arn": "arn:aws:iam::123456789012:user/etl-svc",
+        "accountId": "123456789012",
+        "userName": "etl-svc"
+      },
+      "eventTime": "2026-10-22T22:10:14Z",
+      "eventSource": "iam.amazonaws.com",
+      "eventName": "PutUserPolicy",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.103",
+      "userAgent": "Boto3/1.35.10 md/Botocore#1.35.10 ua/2.0 os/linux lang/python#3.12.3",
+      "requestParameters": {
+        "userName": "etl-svc",
+        "policyName": "temp",
+        "policyDocument": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Action\": \"*\", \"Resource\": \"*\"}]}"
+      },
+      "responseElements": null,
+      "eventID": "eval-35-0000-4000-8000-000000000035",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 36,
+    "expected": "high",
+    "note": "Server image made public: anyone can launch it and read whatever was baked in, such as keys or config.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEVLOPEZ001",
+        "arn": "arn:aws:iam::123456789012:user/vlopez",
+        "accountId": "123456789012",
+        "userName": "vlopez",
+        "sessionContext": {
+          "attributes": {
+            "mfaAuthenticated": "true"
+          }
+        }
+      },
+      "eventTime": "2026-10-23T15:00:38Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "ModifyImageAttribute",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.113",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "requestParameters": {
+        "imageId": "ami-0a1b2c3d4e5f60718",
+        "launchPermission": {
+          "add": {
+            "items": [
+              {
+                "group": "all"
+              }
+            ]
+          }
+        },
+        "attributeType": "launchPermission"
+      },
+      "responseElements": {
+        "_return": true
+      },
+      "eventID": "eval-36-0000-4000-8000-000000000036",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 37,
+    "expected": "high",
+    "note": "Admin role changed to trust an outside AWS account: that account can now act as admin here. (Judgment call between high and critical; labeled high to match cases 4 and 5.)",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEMREED0001",
+        "arn": "arn:aws:iam::123456789012:user/mreed",
+        "accountId": "123456789012",
+        "userName": "mreed"
+      },
+      "eventTime": "2026-10-24T19:45:21Z",
+      "eventSource": "iam.amazonaws.com",
+      "eventName": "UpdateAssumeRolePolicy",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.104",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Linux/6.8.0",
+      "requestParameters": {
+        "roleName": "admin-role",
+        "policyDocument": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Principal\": {\"AWS\": \"arn:aws:iam::444455556666:root\"}, \"Action\": \"sts:AssumeRole\"}]}"
+      },
+      "responseElements": null,
+      "eventID": "eval-37-0000-4000-8000-000000000037",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 38,
+    "expected": "critical",
+    "note": "Production customer database snapshot shared with every AWS account: anyone can restore a full copy.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEBWHITE001",
+        "arn": "arn:aws:iam::123456789012:user/bwhite",
+        "accountId": "123456789012",
+        "userName": "bwhite",
+        "sessionContext": {
+          "attributes": {
+            "mfaAuthenticated": "true"
+          }
+        }
+      },
+      "eventTime": "2026-10-25T21:30:16Z",
+      "eventSource": "rds.amazonaws.com",
+      "eventName": "ModifyDBSnapshotAttribute",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "198.51.100.114",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "requestParameters": {
+        "dBSnapshotIdentifier": "prod-customers-2026-10-24",
+        "attributeName": "restore",
+        "valuesToAdd": [
+          "all"
+        ]
+      },
+      "responseElements": null,
+      "eventID": "eval-38-0000-4000-8000-000000000038",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 39,
+    "expected": "critical",
+    "note": "Production customer database deleted with no final snapshot and its automated backups removed: unrecoverable.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "AROAEXAMPLEDBADMIN01:dbadmin",
+        "arn": "arn:aws:sts::123456789012:assumed-role/dbadmin-role/dbadmin",
+        "accountId": "123456789012",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "principalId": "AROAEXAMPLEDBADMIN01",
+            "arn": "arn:aws:iam::123456789012:role/dbadmin-role",
+            "accountId": "123456789012",
+            "userName": "dbadmin-role"
+          }
+        }
+      },
+      "eventTime": "2026-10-26T02:50:09Z",
+      "eventSource": "rds.amazonaws.com",
+      "eventName": "DeleteDBInstance",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.105",
+      "userAgent": "aws-cli/2.17.0 Python/3.11.9 Linux/6.8.0",
+      "requestParameters": {
+        "dBInstanceIdentifier": "prod-customers",
+        "skipFinalSnapshot": true,
+        "deleteAutomatedBackups": true
+      },
+      "responseElements": null,
+      "eventID": "eval-39-0000-4000-8000-000000000039",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
+  },
+  {
+    "id": 40,
+    "expected": "critical",
+    "note": "Lifecycle rule set to delete every object and every old version in the customer records bucket after one day: mass data destruction.",
+    "event": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLESVCREP001",
+        "arn": "arn:aws:iam::123456789012:user/svc-reporting",
+        "accountId": "123456789012",
+        "userName": "svc-reporting"
+      },
+      "eventTime": "2026-10-27T23:05:44Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutBucketLifecycle",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "203.0.113.106",
+      "userAgent": "Boto3/1.35.10 md/Botocore#1.35.10 ua/2.0 os/linux lang/python#3.12.3",
+      "requestParameters": {
+        "bucketName": "customer-records",
+        "lifecycle": "",
+        "LifecycleConfiguration": {
+          "Rule": {
+            "ID": "cleanup",
+            "Status": "Enabled",
+            "Filter": {
+              "Prefix": ""
+            },
+            "Expiration": {
+              "Days": 1
+            },
+            "NoncurrentVersionExpiration": {
+              "NoncurrentDays": 1
+            }
+          }
+        }
+      },
+      "responseElements": null,
+      "eventID": "eval-40-0000-4000-8000-000000000040",
+      "readOnly": false,
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "recipientAccountId": "123456789012"
+    }
   }
 ]
