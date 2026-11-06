@@ -20,8 +20,12 @@ const manager = congitoEnabled
     })
   : null;
 
-export async function startSignIn(): Promise<void> {
-  await manager?.signinRedirect();
+export async function startSignIn(
+  loginHint?: string,
+): Promise<void> {
+  await manager?.signinRedirect(
+    loginHint ? { login_hint: loginHint } : undefined,
+  );
 }
 
 let session: Promise<string | null> | null = null;
