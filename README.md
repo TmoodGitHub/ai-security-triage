@@ -85,6 +85,19 @@ Running the 16 event-only cases with related activity drawn from each other scor
 
 Cost comes from the token counts Claude reports for each call, at Claude Haiku 4.5's published prices. Scores vary from run to run by about one case. With sets this small, one case changes the score by 6 points (16 cases) or 13 points (8 cases).
 
+## Tried and measured: letting the AI choose its own lookups
+
+Triage normally gives Claude a fixed set of related events: same identity or same IP address, within 24 hours. As an experiment, a tool-calling mode (`triage/tools.py`) gives it two lookups instead (other activity by this identity, other activity from this IP, over a window it picks) and lets it decide whether to use them. In the evals, the lookups are answered from the same events the fixed rule would supply, so any difference comes from how Claude chooses.
+
+Four runs of each on the 8 context cases, the set built to measure context:
+
+| Related activity | Exact       | Rated too low | Cost per 1,000 alerts | Avg time per alert |
+| ---------------- | ----------- | ------------- | --------------------- | ------------------ |
+| Fixed rule       | 26/32 (81%) | 2             | $3.02                 | 4.5s               |
+| Claude's lookups | 26/32 (81%) | 2             | $7.66                 | 6.8s               |
+
+Same accuracy, at 2.5 times the cost and 1.5 times the time. Claude ran both lookups at the full 24 hours on every event, so it saw what the fixed rule already provides and paid for extra rounds to get it. One early run scored 8/8; the repeats showed that was variation, which is why every comparison here uses repeated runs. The fixed rule stays in production. The experiment runs with `python -m triage.evals --context-set --tools`.
+
 ## Running cost
 
 Measured with AWS Cost Explorer, early November 2026:
@@ -119,7 +132,7 @@ Nearly all of the AWS cost is the database's storage and the Secrets Manager sec
 - [x] Automatic intake and triage on AWS (S3, SQS, Lambda)
 - [x] Cognito sign-in, with a view-only demo account
 - [x] Deploys from CI after all tests pass
-- [ ] Stretch: let the AI choose its own lookups (tool calling), compared against the fixed rules in evals
+- [x] Stretch: let the AI choose its own lookups (tool calling), compared against the fixed rules in evals
 
 ## Project layout
 
