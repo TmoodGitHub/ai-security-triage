@@ -127,3 +127,52 @@ def test_run_evals_context_set_sends_case_its_own_related_events():
                 assert related["event_name"] in prompt
         else:
             assert "Related events: none found." in prompt
+
+def test_case_lookups_filter_by_link_and_window():
+    target = {"eventTime": "2026-10-14T12:00:00Z"}
+    candidates = [
+        {"event_time": "2026-10-14T11:00:00Z", "link": "same identity", "event_name": "A"},
+        {"event_time": "2026-10-14T11:30:00Z", "link": "same IP", "event_name": "B"},
+        {"event_time": "2026-10-14T06:00:00Z", "link": "same identity and IP", "event_name": "C"},
+    ]
+    lookups = evals.CaseLookups(target, candidates)
+
+    assert [r["event_name"] for r in lookups.activity("identity", 2)] == ["A"]
+    assert [r["event_name"] for r in lookups.activity("ip", 2)] == ["B"]
+    assert [r["event_name"] for r in lookups.activity("identity", 24)] == ["A", "C"]
+
+def test_run_evals_with_tools_gives_nothing_up_front_and_answers_lookups():
+    requests = []
+
+    def parse(**kwargs):
+        requests.append({**kwargs, "messages": list(kwargs["messages"])})
+        if len(kwargs["messages"]) == 1:
+            lookup = SimpleNamespace(type="tool_use", id="t1", name="activity_from_ip", input={"hours": 24})
+            return SimpleNamespace(
+                stop_reason="tool_use",
+                content=[lookup],
+                parsed_output=None,
+                usage=SimpleNamespace(input_tokens=500, output_tokens=50),
+            )
+        return SimpleNamespace(
+            stop_reason="end_turn",
+            content=[],
+            parsed_output=TriageResult(severity="low", summary="s", reasoning="r", evidence=[], unknowns=[]),
+            usage=SimpleNamespace(input_tokens=1000, output_tokens=100),
+        )
+
+    client = SimpleNamespace(messages=SimpleNamespace(parse=parse))
+
+    run = evals.run_evals(client, context_set=True, tools=True)
+
+    cases = json.loads(evals.CONTEXT_CASES_PATH.read_text())
+    assert run.used_lookups == len(cases)
+    first_prompts = [r["messages"][0]["content"] for r in requests if len(r["messages"]) == 1]
+    assert not any("Related events" in prompt for prompt in first_prompts)
+
+    spraying = next(c for c in cases if c["id"] == "B2")
+    answered = [r for r in requests if len(r["messages"]) == 3 and spraying["event"]["eventID"] in r["messages"][0]["content"]]
+    tool_result = answered[0]["messages"][2]["content"][0]["content"]
+    for related in spraying["related"]:
+        if "IP" in related["link"]:
+            assert related["event_name"] in tool_result

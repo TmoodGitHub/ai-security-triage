@@ -8,6 +8,7 @@ from pathlib import Path
 import anthropic
 from dotenv import load_dotenv
 
+from triage.tools import TOOLS, TOOLS_PROMPT, triage_with_tools
 from triage.triage import MODEL, SYSTEM_PROMPT, TriageError, describe_target, triage_event
 
 LEVELS = ["low","medium","high","critical"]
@@ -74,6 +75,21 @@ def related_from_cases(target: dict, cases: list[dict], limit: int = 20) -> list
     related.sort(key=lambda r: r["event_time"])
     return related[:limit]
 
+def _parse_time(value: str) -> datetime:
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+class CaseLookups:
+    def __init__(self, target: dict, candidates: list[dict]):
+        self.time = _parse_time(target["eventTime"])
+        self.candidates = candidates
+
+    def activity(self, by: str, hours: int) -> list[dict]:
+        link = "identity" if by == "identity" else "IP"
+        window = timedelta(hours=hours)
+        return [
+            r for r in self.candidates
+            if link in r["link"] and abs(_parse_time(r["event_time"]) - self.time) <= window
+        ]
 @dataclass
 class EvalRun:
     total: int
@@ -84,14 +100,14 @@ class EvalRun:
     failed: int
     avg_cost: float
     avg_seconds: float
+    used_lookups: int = 0
 
-def run_evals(client: anthropic.Anthropic, with_context: bool = False, context_set: bool = False) -> EvalRun:
-    """
-    Score the model against labeled cases.
-
-    with_context: give each event its related events, found amoung the other cases.
-    context_set: use the context cases instead, each with its own designed related events.
-    """
+def run_evals(
+        client: anthropic.Anthropic, 
+        with_context: bool = False, 
+        context_set: bool = False,
+        tools: bool = False,
+    ) -> EvalRun:
     cases = json.loads((CONTEXT_CASES_PATH if context_set else CASES_PATH).read_text())
     exact = 0
     within_one = 0
@@ -100,8 +116,11 @@ def run_evals(client: anthropic.Anthropic, with_context: bool = False, context_s
     failed = 0
     calls = []
     misses = []
+    used_lookups = 0
 
-    if context_set:
+    if tools:
+        mode = "context set, lookups by tool" if context_set else "lookups by tool"
+    elif context_set:
         mode = "context set, with designed related events"
     elif with_context:
         mode = "with related events"
@@ -119,7 +138,11 @@ def run_evals(client: anthropic.Anthropic, with_context: bool = False, context_s
         else:
             related = None
         try:
-            call = triage_event(client, case["event"], related)
+            if tools:
+                candidates = case["related"] if context_set else related_from_cases(case["event"], cases)
+                call = triage_with_tools(client, case["event"], CaseLookups(case["event"], candidates))
+            else:
+                call = triage_event(client, case["event"], related)
         except (anthropic.APIError, TriageError) as error:
             failed += 1
             print(f"{case['id']:>3}  {name:<32} {case['expected']:<9} {'-':<9} FAILED: {error}")
@@ -149,7 +172,11 @@ def run_evals(client: anthropic.Anthropic, with_context: bool = False, context_s
         if gap > 0:
             misses.append((case, result))
 
-        print(f"{case['id']:>3}  {name:<32} {case['expected']:<9} {result.severity:<9} {mark}{direction}")
+        lookups = ""
+        if tools:
+            used_lookups += bool(call.lookups)
+            lookups = f"  lookups: {', '.join(call.lookups) or 'none'}"
+        print(f"{case['id']:>3}  {name:<32} {case['expected']:<9} {result.severity:<9} {mark}{direction}{lookups}")
 
     total = len(cases)
     avg_cost = sum(c.cost for c in calls) / len(calls) if calls else 0.0
@@ -162,6 +189,8 @@ def run_evals(client: anthropic.Anthropic, with_context: bool = False, context_s
     print(f"Failed calls:     {failed}/{total}")
     print(f"Avg per alert:    ${avg_cost:.4f}, {avg_seconds:.1f}s")
     print(f"Per 1,000 alerts: ${avg_cost * 1000:.2f}")
+    if tools:
+        print(f"Used lookups:       {used_lookups}/{total}")
 
     if misses:
         print("\nDisagreements:")
@@ -171,17 +200,20 @@ def run_evals(client: anthropic.Anthropic, with_context: bool = False, context_s
             print(f"  Label note: {case['note']}")
             print(f"  Claude's reasoning: {result.reasoning}")
 
-    return EvalRun(total, exact, within_one, too_low, too_high, failed, avg_cost, avg_seconds)
+    return EvalRun(total, exact, within_one, too_low, too_high, failed, avg_cost, avg_seconds, used_lookups)
         
 
 
 def prompt_fingerprint() -> str:
-    return hashlib.sha256(SYSTEM_PROMPT.encode("utf-8")).hexdigest()[:8]
+    text = SYSTEM_PROMPT
+    if tools:
+        text += TOOLS_PROMPT + json.dumps(TOOLS, sort_keys=True)
+        return hashlib.sha256(text.encode("utf-8")).hexdigest()[:8]
 
 
-def append_to_log(run: EvalRun, note: str) -> None:
+def append_to_log(run: EvalRun, note: str, tools: bool = False) -> None:
     row = (
-        f"| {datetime.now().strftime('%Y-%m-%d %H:%M')} | {MODEL} | `{prompt_fingerprint()}` "
+        f"| {datetime.now().strftime('%Y-%m-%d %H:%M')} | {MODEL} | `{prompt_fingerprint(tools)}` "
         f"| {run.exact}/{run.total} ({run.exact / run.total:.0%}) "
         f"| {run.within_one}/{run.total} ({run.within_one / run.total:.0%}) "
         f"| {run.too_low}/{run.total} "
@@ -201,18 +233,24 @@ if __name__ == "__main__":
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--context", action="store_true", help="Give each case its related events from teh other cases")
     mode.add_argument("--context-set", action="store_true", help="Run the context cases, each with its own designed related events")
+    parser.add_argument("--tools", action="store_true", help="Let the model look up related events itself, instead of being given them")
     args = parser.parse_args()
+    if args.tools and args.context:
+        parser.error("--tools replaces --context: the model looks up related events itself")
 
     load_dotenv()
-    run = run_evals(anthropic.Anthropic(), with_context=args.context, context_set=args.context_set)
+    run = run_evals(anthropic.Anthropic(), with_context=args.context, context_set=args.context_set, tools=args.tools)
 
     if args.log:
-        if args.context_set:
+        if args.tools:
+            tag = "[context set, tools] " if args.context_set else "[tools] "
+            tag += f"(lookups on {run.used_lookups}/{run.total}) "
+        elif args.context_set:
             tag = "[context set] "
         elif args.context:
             tag = "[with context] "
         else:
             tag = "[no context] "
         note = tag + args.log
-        append_to_log(run, note)
-        print(f"\nAdded to {LOG_PATH.name} (prompt {prompt_fingerprint()})")
+        append_to_log(run, note, tools=args.tools)
+        print(f"\nAdded to {LOG_PATH.name} (prompt {prompt_fingerprint(args.tools)})")
